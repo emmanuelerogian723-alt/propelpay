@@ -360,7 +360,7 @@ async def download_receipt_pdf(
         select(Payment).where(Payment.invoice_id == invoice_id).order_by(Payment.created_at.desc())
     )
     payment = pay_result.scalar_one_or_none()
-    tx_ref = payment.paystack_reference if payment else None
+    tx_ref = payment.reference if payment else None
 
     paid_at = str(inv.paid_at)[:16] if inv.paid_at else str(inv.created_at)[:16]
 
