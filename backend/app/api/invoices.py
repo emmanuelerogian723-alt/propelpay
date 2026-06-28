@@ -261,3 +261,138 @@ async def verify_payment(token: str, reference: str, db: AsyncSession = Depends(
             ))
         return {"success": True, "message": "Payment confirmed!", "invoice": inv.invoice_number}
     return {"success": False, "message": "Payment not verified"}
+
+# ── PDF / RECEIPT ENDPOINTS ──────────────────────────────────────────────────
+
+from fastapi.responses import StreamingResponse
+import io
+
+@router.get("/{invoice_id}/pdf")
+async def download_invoice_pdf(
+    invoice_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Download a beautiful PDF invoice."""
+    from app.services.pdf_generator import generate_invoice_pdf
+
+    inv_result = await db.execute(
+        select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id)
+    )
+    inv = inv_result.scalar_one_or_none()
+    if not inv:
+        raise HTTPException(404, "Invoice not found")
+
+    items_result = await db.execute(
+        select(InvoiceItem).where(InvoiceItem.invoice_id == invoice_id)
+    )
+    items = items_result.scalars().all()
+
+    # Get client info
+    client_name, client_email = "Client", ""
+    if inv.client_id:
+        c_result = await db.execute(select(Client).where(Client.id == inv.client_id))
+        client = c_result.scalar_one_or_none()
+        if client:
+            client_name = client.name
+            client_email = client.email or ""
+
+    pdf_bytes = generate_invoice_pdf(
+        invoice_number=inv.invoice_number,
+        business_name=user.business_name or user.name,
+        business_email=user.email,
+        client_name=client_name,
+        client_email=client_email,
+        items=[{"description": i.description, "quantity": i.quantity,
+                "unit_price": i.unit_price, "total": i.total} for i in items],
+        subtotal=inv.subtotal,
+        tax_rate=inv.tax_rate,
+        tax_amount=inv.tax_amount,
+        discount=inv.discount,
+        total=inv.total,
+        currency=inv.currency,
+        due_date=str(inv.due_date),
+        created_date=str(inv.created_at)[:10] if inv.created_at else "",
+        notes=inv.notes,
+        terms=inv.terms,
+        status=inv.status,
+        paystack_link=inv.paystack_payment_link,
+    )
+
+    filename = f"{inv.invoice_number}.pdf"
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"',
+                 "Content-Length": str(len(pdf_bytes))}
+    )
+
+
+@router.get("/{invoice_id}/receipt")
+async def download_receipt_pdf(
+    invoice_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Download payment receipt PDF (only for paid invoices)."""
+    from app.services.pdf_generator import generate_receipt_pdf
+
+    inv_result = await db.execute(
+        select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id)
+    )
+    inv = inv_result.scalar_one_or_none()
+    if not inv:
+        raise HTTPException(404, "Invoice not found")
+    if inv.status != "paid":
+        raise HTTPException(400, "Receipt only available for paid invoices")
+
+    # Get client info
+    client_name, client_email = "Client", ""
+    if inv.client_id:
+        c_result = await db.execute(select(Client).where(Client.id == inv.client_id))
+        client = c_result.scalar_one_or_none()
+        if client:
+            client_name = client.name
+            client_email = client.email or ""
+
+    # Get payment ref
+    pay_result = await db.execute(
+        select(Payment).where(Payment.invoice_id == invoice_id).order_by(Payment.created_at.desc())
+    )
+    payment = pay_result.scalar_one_or_none()
+    tx_ref = payment.paystack_reference if payment else None
+
+    paid_at = str(inv.paid_at)[:16] if inv.paid_at else str(inv.created_at)[:16]
+
+    receipt_bytes = generate_receipt_pdf(
+        invoice_number=inv.invoice_number,
+        business_name=user.business_name or user.name,
+        business_email=user.email,
+        client_name=client_name,
+        client_email=client_email,
+        total=inv.total,
+        currency=inv.currency,
+        paid_at=paid_at,
+        payment_method="Paystack",
+        transaction_ref=tx_ref,
+    )
+
+    filename = f"Receipt-{inv.invoice_number}.pdf"
+    return StreamingResponse(
+        io.BytesIO(receipt_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"',
+                 "Content-Length": str(len(receipt_bytes))}
+    )
+
+
+@router.get("/public/{token}")
+async def public_invoice(token: str, db: AsyncSession = Depends(get_db)):
+    """Public invoice view (no auth needed — for client payment page)."""
+    inv_result = await db.execute(select(Invoice).where(Invoice.public_token == token))
+    inv = inv_result.scalar_one_or_none()
+    if not inv:
+        raise HTTPException(404, "Invoice not found")
+    items_result = await db.execute(select(InvoiceItem).where(InvoiceItem.invoice_id == inv.id))
+    items = items_result.scalars().all()
+    return _invoice_dict(inv, items)
