@@ -1,9 +1,7 @@
 """
-PropelPay — Send. Sign. Get Paid.
-FastAPI Backend v1.1
+PropelPay v1.1 — Send. Sign. Get Paid.
 """
-import logging
-import os
+import logging, os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
