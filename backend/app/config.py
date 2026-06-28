@@ -1,70 +1,82 @@
-"""PropelPay Configuration"""
+"""PropelPay Configuration — Pydantic v2 compatible"""
 import os
 from functools import lru_cache
-from pydantic_settings import BaseSettings
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=False,
+    )
+
     # App
     APP_NAME: str = "PropelPay"
-    VERSION: str = "1.0.0"
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
-    DEBUG: bool = ENVIRONMENT != "production"
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "change-me-super-secret-key-propelpay-2026")
-    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
-    BACKEND_URL: str = os.getenv("BACKEND_URL", "http://localhost:8000")
+    VERSION: str = "1.1.0"
+    ENVIRONMENT: str = "development"
+    SECRET_KEY: str = "change-me-super-secret-key-propelpay-2026"
+    FRONTEND_URL: str = "http://localhost:3000"
+    BACKEND_URL: str = "http://localhost:8000"
 
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./propelpay.db")
+    DATABASE_URL: str = "sqlite+aiosqlite:///./propelpay.db"
 
     # Auth
-    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "propelpay-jwt-secret-2026-change-me")
+    JWT_SECRET_KEY: str = "propelpay-jwt-secret-2026-change-me"
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_HOURS: int = 720  # 30 days
 
     # AI
-    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-    OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    GROQ_API_KEY: str = ""
+    OPENROUTER_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
 
     # Payments
-    PAYSTACK_SECRET_KEY: str = os.getenv("PAYSTACK_SECRET_KEY", "")
-    PAYSTACK_PUBLIC_KEY: str = os.getenv("PAYSTACK_PUBLIC_KEY", "")
-    STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")  # future
+    PAYSTACK_SECRET_KEY: str = ""
+    PAYSTACK_PUBLIC_KEY: str = ""
+    STRIPE_SECRET_KEY: str = ""
 
     # Email (SMTP)
-    SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
-    SMTP_USER: str = os.getenv("SMTP_USER", "")
-    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
-    SMTP_FROM_NAME: str = os.getenv("SMTP_FROM_NAME", "PropelPay")
-    SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", os.getenv("SMTP_USER", ""))
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_NAME: str = "PropelPay"
+    SMTP_FROM_EMAIL: str = ""
 
-    # Plans & Limits
-    PLAN_LIMITS: dict = {
-        "free":       {"proposals": 3,  "invoices": 5,  "clients": 5,   "ai_drafts": 3},
-        "solo":       {"proposals": 50, "invoices": 100,"clients": 50,  "ai_drafts": 50},
-        "agency":     {"proposals": -1, "invoices": -1, "clients": -1,  "ai_drafts": -1},
-        "enterprise": {"proposals": -1, "invoices": -1, "clients": -1,  "ai_drafts": -1},
-    }
-    # Prices in Naira (kobo for Paystack)
-    PLAN_PRICES_NGN: dict = {
-        "free":       0,
-        "solo":       9900,    # ₦9,900/mo
-        "agency":     24900,   # ₦24,900/mo
-        "enterprise": 79900,   # ₦79,900/mo
-    }
-    # Prices in USD cents for Stripe
-    PLAN_PRICES_USD: dict = {
-        "free":       0,
-        "solo":       1500,    # $15/mo
-        "agency":     2900,    # $29/mo
-        "enterprise": 7900,    # $79/mo
-    }
+    @property
+    def DEBUG(self) -> bool:
+        return self.ENVIRONMENT != "production"
 
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
+    @property
+    def PLAN_LIMITS(self) -> dict:
+        return {
+            "free":       {"proposals": 3,  "invoices": 5,  "clients": 5,   "ai_drafts": 3},
+            "solo":       {"proposals": 50, "invoices": 100,"clients": 50,  "ai_drafts": 50},
+            "agency":     {"proposals": -1, "invoices": -1, "clients": -1,  "ai_drafts": -1},
+            "enterprise": {"proposals": -1, "invoices": -1, "clients": -1,  "ai_drafts": -1},
+        }
+
+    @property
+    def PLAN_PRICES_NGN(self) -> dict:
+        return {
+            "free":       0,
+            "solo":       9900,
+            "agency":     24900,
+            "enterprise": 79900,
+        }
+
+    @property
+    def PLAN_PRICES_USD(self) -> dict:
+        return {
+            "free":       0,
+            "solo":       1500,
+            "agency":     2900,
+            "enterprise": 7900,
+        }
 
 
 @lru_cache()
