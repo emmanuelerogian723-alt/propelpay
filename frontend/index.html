@@ -2,565 +2,770 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PropelPay — Send. Sign. Get Paid.</title>
-<meta name="description" content="The all-in-one platform for freelancers and agencies to send AI-powered proposals, collect e-signatures, invoice clients and get paid automatically. Built for Africa, designed for the world.">
-<meta name="keywords" content="proposal software, invoice software, freelancer tools, get paid faster, paystack, e-signature, Africa">
+<meta name="description" content="AI-powered proposals, e-signatures, smart invoicing and automated payment collection. Built for African freelancers and global agencies.">
 <meta property="og:title" content="PropelPay — Send. Sign. Get Paid.">
-<meta property="og:description" content="AI proposals + e-signatures + smart invoicing + auto payment chasing. One platform. Built for Africa.">
+<meta property="og:description" content="The premium invoicing platform for serious freelancers. Paystack payments. WhatsApp reminders. AI proposals.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--brand:#6366f1;--brand2:#8b5cf6;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;
---bg:#0a0f1e;--card:#111827;--card2:#1e293b;--border:#1f2937;--text:#e2e8f0;--muted:#64748b;--white:#fff}
+:root{
+  --brand:#6366f1;--brand2:#8b5cf6;--green:#10b981;
+  --bg:#000;--card:rgba(255,255,255,.04);--card2:rgba(255,255,255,.07);
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.12);
+  --text:#e2e8f0;--muted:#64748b;--white:#fff;
+  --grad:linear-gradient(135deg,var(--brand),var(--brand2));
+}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;border:none;transition:.2s}
-.btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.4)}
-.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text)}
-.btn-outline:hover{border-color:var(--brand);color:var(--brand)}
-.btn-green{background:linear-gradient(135deg,var(--green),#059669);color:#fff}
-.btn-green:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(16,185,129,.4)}
-.container{max-width:1200px;margin:0 auto;padding:0 24px}
-/* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,15,30,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
-.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;max-width:1200px;margin:0 auto}
-.logo{font-size:22px;font-weight:900;background:linear-gradient(135deg,var(--brand),var(--brand2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.nav-links{display:flex;align-items:center;gap:32px}
-.nav-links a{color:var(--muted);font-size:14px;transition:.2s}
-.nav-links a:hover{color:var(--text)}
+::selection{background:rgba(99,102,241,.3);color:#fff}
+
+/* ── FLUID HERO CANVAS ─────────────────────────────────────────────────────── */
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* ── NAV ───────────────────────────────────────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;transition:.3s}
+nav.scrolled{background:rgba(0,0,0,.85);backdrop-filter:blur(24px);border-bottom:1px solid var(--border)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:20px 48px;max-width:1280px;margin:0 auto}
+.logo{font-size:20px;font-weight:900;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px}
+.logo-dot{width:6px;height:6px;background:var(--brand);border-radius:50%;display:inline-block;margin-left:2px;vertical-align:middle}
+.nav-links{display:flex;align-items:center;gap:36px}
+.nav-links a{color:rgba(255,255,255,.55);font-size:14px;font-weight:500;transition:.2s;letter-spacing:.01em}
+.nav-links a:hover{color:#fff}
 .nav-cta{display:flex;gap:12px;align-items:center}
-/* HERO */
-.hero{min-height:100vh;display:flex;align-items:center;padding:120px 24px 80px;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
-background:radial-gradient(ellipse at 60% 40%,rgba(99,102,241,.12) 0%,transparent 60%),
-           radial-gradient(ellipse at 20% 80%,rgba(139,92,246,.08) 0%,transparent 50%);pointer-events:none}
-.hero-content{max-width:700px}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);
-border-radius:50px;padding:6px 16px;font-size:13px;color:var(--brand);margin-bottom:24px}
-.hero h1{font-size:clamp(36px,6vw,72px);font-weight:900;line-height:1.05;margin-bottom:24px}
-.hero h1 span{background:linear-gradient(135deg,var(--brand),var(--brand2),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero p{font-size:19px;color:var(--muted);line-height:1.7;margin-bottom:40px;max-width:560px}
-.hero-cta{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:48px}
-.hero-stats{display:flex;gap:40px;flex-wrap:wrap}
-.stat{display:flex;flex-direction:column}
-.stat-num{font-size:28px;font-weight:800;color:var(--white)}
-.stat-label{font-size:13px;color:var(--muted)}
-/* FEATURES */
-.section{padding:100px 0}
-.section-badge{display:inline-block;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);
-border-radius:50px;padding:5px 14px;font-size:12px;color:var(--brand);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px}
-.section-title{font-size:clamp(28px,4vw,48px);font-weight:800;margin-bottom:16px;line-height:1.15}
-.section-sub{font-size:17px;color:var(--muted);max-width:560px;line-height:1.7;margin-bottom:64px}
-.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px}
-.feature-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;transition:.2s;position:relative;overflow:hidden}
-.feature-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(99,102,241,.05),transparent);opacity:0;transition:.3s}
-.feature-card:hover{border-color:rgba(99,102,241,.4);transform:translateY(-4px)}
-.feature-card:hover::before{opacity:1}
-.feature-icon{width:52px;height:52px;background:linear-gradient(135deg,var(--brand),var(--brand2));border-radius:14px;
-display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:20px}
-.feature-title{font-size:18px;font-weight:700;margin-bottom:8px;color:var(--white)}
-.feature-desc{font-size:15px;color:var(--muted);line-height:1.7}
-/* HOW IT WORKS */
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0;position:relative}
-.step{text-align:center;padding:32px 24px}
-.step-num{width:56px;height:56px;background:linear-gradient(135deg,var(--brand),var(--brand2));border-radius:50%;
-display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;margin:0 auto 20px}
-.step-title{font-size:17px;font-weight:700;margin-bottom:8px;color:var(--white)}
-.step-desc{font-size:14px;color:var(--muted);line-height:1.7}
-/* PRICING */
-.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-top:64px}
-.price-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:36px;position:relative}
-.price-card.popular{border-color:var(--brand);background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.05))}
-.popular-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);
-background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;font-size:12px;font-weight:700;
-padding:5px 18px;border-radius:50px;white-space:nowrap}
-.plan-name{font-size:14px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px}
-.plan-price{font-size:42px;font-weight:900;color:var(--white);margin-bottom:4px}
-.plan-price span{font-size:18px;font-weight:400;color:var(--muted)}
-.plan-period{font-size:13px;color:var(--muted);margin-bottom:24px}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 22px;border-radius:9px;font-weight:600;font-size:14px;cursor:pointer;border:none;transition:.2s;font-family:inherit;letter-spacing:.01em}
+.btn-sm{padding:8px 18px;font-size:13px}
+.btn-nav{background:transparent;color:rgba(255,255,255,.7);border:1.5px solid rgba(255,255,255,.15)}
+.btn-nav:hover{border-color:rgba(99,102,241,.6);color:#fff}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 0 30px rgba(99,102,241,.25)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(99,102,241,.45)}
+.btn-outline{background:transparent;border:1.5px solid var(--border2);color:var(--text)}
+.btn-outline:hover{border-color:rgba(99,102,241,.5);color:#fff}
+.btn-ghost{background:rgba(255,255,255,.06);color:#fff;border:1.5px solid var(--border)}
+.btn-ghost:hover{background:rgba(255,255,255,.1)}
+.container{max-width:1200px;margin:0 auto;padding:0 32px}
+
+/* ── HERO ──────────────────────────────────────────────────────────────────── */
+.hero{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;background:#000}
+.hero-content{position:relative;z-index:2;padding:140px 48px 100px;max-width:1280px;margin:0 auto;width:100%}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);border-radius:50px;padding:6px 16px;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:32px;letter-spacing:.06em;text-transform:uppercase}
+.hero-eyebrow-dot{width:6px;height:6px;background:#6366f1;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{font-size:clamp(42px,7vw,88px);font-weight:900;line-height:1.02;letter-spacing:-3px;margin-bottom:28px;color:#fff;max-width:800px}
+.hero h1 .line2{background:linear-gradient(90deg,#6366f1,#8b5cf6,#a78bfa,#6366f1);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 4s linear infinite}
+@keyframes shimmer{0%{background-position:0% center}100%{background-position:200% center}}
+.hero-sub{font-size:clamp(16px,2vw,20px);color:rgba(255,255,255,.45);line-height:1.7;max-width:520px;margin-bottom:44px;font-weight:400}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:72px;align-items:center}
+.hero-cta .btn-primary{padding:16px 32px;font-size:16px;border-radius:11px}
+.hero-cta .btn-ghost{padding:15px 28px;font-size:15px;border-radius:11px}
+.hero-arrow{font-size:14px;opacity:.4}
+.hero-stats{display:flex;gap:52px;flex-wrap:wrap}
+.h-stat-val{font-size:32px;font-weight:800;color:#fff;letter-spacing:-1px}
+.h-stat-lab{font-size:13px;color:rgba(255,255,255,.35);margin-top:2px;font-weight:400}
+
+/* Performance card (right side) */
+.hero-card{position:absolute;right:48px;top:50%;transform:translateY(-50%);z-index:2;background:rgba(255,255,255,.04);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:22px 26px;min-width:210px;animation:floatCard 4s ease-in-out infinite}
+@keyframes floatCard{0%,100%{transform:translateY(-50%) translateY(0)}50%{transform:translateY(-50%) translateY(-12px)}}
+.card-label{font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.card-amount{font-size:36px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1}
+.card-arrow{width:28px;height:28px;background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.3);border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:var(--green);font-size:14px;margin-left:8px;vertical-align:middle}
+.card-sub{font-size:12px;color:rgba(255,255,255,.3);margin-top:8px}
+
+/* Logo belt */
+.logo-belt{position:relative;z-index:2;background:rgba(0,0,0,.5);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:22px 0;overflow:hidden}
+.belt-label{text-align:center;font-size:11px;font-weight:600;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.12em;margin-bottom:16px}
+.belt-track{display:flex;align-items:center;justify-content:center;gap:56px;flex-wrap:wrap;padding:0 32px}
+.belt-logo{font-size:14px;font-weight:700;color:rgba(255,255,255,.2);letter-spacing:.05em;transition:.2s}
+.belt-logo:hover{color:rgba(255,255,255,.5)}
+
+/* ── FEATURES ──────────────────────────────────────────────────────────────── */
+.section{padding:110px 0}
+.section-eyebrow{display:inline-block;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);border-radius:50px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--brand);text-transform:uppercase;letter-spacing:.1em;margin-bottom:18px}
+.section-title{font-size:clamp(28px,4vw,52px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;margin-bottom:18px;color:#fff}
+.section-sub{font-size:17px;color:rgba(255,255,255,.4);line-height:1.7;max-width:520px;font-weight:400}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:2px;background:var(--border);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-top:64px}
+.feat{background:#000;padding:40px;position:relative;overflow:hidden;transition:.25s}
+.feat:hover{background:rgba(99,102,241,.05)}
+.feat-icon{width:48px;height:48px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.2);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:22px}
+.feat-title{font-size:17px;font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:-.3px}
+.feat-desc{font-size:14px;color:rgba(255,255,255,.4);line-height:1.7}
+.feat-accent{position:absolute;bottom:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(99,102,241,.08),transparent);pointer-events:none}
+
+/* ── HOW IT WORKS ──────────────────────────────────────────────────────────── */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative}
+.steps::before{content:'';position:absolute;top:27px;left:12.5%;right:12.5%;height:1px;background:linear-gradient(90deg,transparent,var(--border),var(--border),var(--border),transparent)}
+.step{text-align:center;padding:0 20px}
+.step-num{width:56px;height:56px;background:#000;border:1px solid var(--border2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:rgba(255,255,255,.5);margin:0 auto 24px;position:relative;z-index:1;transition:.2s}
+.step:hover .step-num{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 0 30px rgba(99,102,241,.4)}
+.step-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:-.2px}
+.step-desc{font-size:13px;color:rgba(255,255,255,.35);line-height:1.7}
+
+/* ── PRICING ───────────────────────────────────────────────────────────────── */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:64px}
+.price-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:20px;padding:36px;position:relative;transition:.25s}
+.price-card:hover{border-color:var(--border2)}
+.price-card.featured{background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.06));border-color:rgba(99,102,241,.35);box-shadow:0 0 60px rgba(99,102,241,.12)}
+.feat-tag{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--grad);color:#fff;font-size:11px;font-weight:700;padding:4px 16px;border-radius:50px;white-space:nowrap;letter-spacing:.05em}
+.plan-name{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:14px}
+.plan-price{font-size:48px;font-weight:900;color:#fff;letter-spacing:-2px;line-height:1;margin-bottom:4px}
+.plan-price sup{font-size:20px;vertical-align:super;letter-spacing:0}
+.plan-price sub{font-size:16px;color:rgba(255,255,255,.3);font-weight:400;vertical-align:baseline;letter-spacing:0}
+.plan-period{font-size:12px;color:rgba(255,255,255,.25);margin-bottom:28px}
 .plan-features{list-style:none;margin-bottom:32px}
-.plan-features li{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px;color:var(--text);border-bottom:1px solid rgba(255,255,255,.05)}
-.plan-features li::before{content:'✓';color:var(--green);font-weight:800;flex-shrink:0}
-/* TESTIMONIALS */
-.testimonials{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
-.testimonial{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px}
-.t-stars{color:var(--yellow);font-size:16px;margin-bottom:12px}
-.t-text{font-size:15px;line-height:1.7;color:var(--text);margin-bottom:20px;font-style:italic}
-.t-author{display:flex;align-items:center;gap:12px}
-.t-avatar{width:40px;height:40px;background:linear-gradient(135deg,var(--brand),var(--brand2));border-radius:50%;
-display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:16px}
-.t-name{font-size:14px;font-weight:700;color:var(--white)}
-.t-role{font-size:12px;color:var(--muted)}
-/* FAQ */
-.faq{max-width:780px;margin:64px auto 0}
-.faq-item{border-bottom:1px solid var(--border);overflow:hidden}
-.faq-q{width:100%;background:transparent;border:none;color:var(--text);font-size:16px;font-weight:600;
-padding:20px 0;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
-.faq-q:hover{color:var(--brand)}
-.faq-a{font-size:14px;color:var(--muted);line-height:1.8;padding:0 0 20px;display:none}
-.faq-item.open .faq-a{display:block}
-.faq-item.open .faq-icon{transform:rotate(45deg)}
-.faq-icon{transition:.2s;font-size:20px;color:var(--muted)}
-/* CTA SECTION */
-.cta-section{background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.1));
-border:1px solid rgba(99,102,241,.2);border-radius:24px;padding:72px 48px;text-align:center;margin:80px 0}
-/* FOOTER */
-footer{background:var(--card);border-top:1px solid var(--border);padding:64px 0 32px}
-.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
-.footer-brand .logo{font-size:20px;display:block;margin-bottom:12px}
-.footer-brand p{font-size:14px;color:var(--muted);line-height:1.8;max-width:260px}
-.footer-col h4{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:16px}
-.footer-col a{display:block;font-size:14px;color:var(--muted);margin-bottom:10px;transition:.2s}
-.footer-col a:hover{color:var(--brand)}
-.footer-bottom{border-top:1px solid var(--border);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:gap:16px}
-.footer-bottom p{font-size:13px;color:var(--muted)}
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center;padding:24px}
+.plan-features li{display:flex;align-items:flex-start;gap:10px;padding:9px 0;font-size:14px;color:rgba(255,255,255,.6);border-bottom:1px solid rgba(255,255,255,.05)}
+.plan-features li:last-child{border:none}
+.plan-features li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;margin-top:1px}
+
+/* ── TESTIMONIALS ──────────────────────────────────────────────────────────── */
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:64px}
+.testi{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:18px;padding:30px;transition:.2s}
+.testi:hover{border-color:var(--border2);background:rgba(255,255,255,.05)}
+.testi-stars{color:#f59e0b;font-size:14px;margin-bottom:16px;letter-spacing:2px}
+.testi-text{font-size:15px;line-height:1.75;color:rgba(255,255,255,.65);font-style:italic;margin-bottom:22px}
+.testi-author{display:flex;align-items:center;gap:12px}
+.testi-avatar{width:38px;height:38px;background:var(--grad);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;flex-shrink:0}
+.testi-name{font-size:14px;font-weight:700;color:#fff}
+.testi-role{font-size:12px;color:rgba(255,255,255,.3)}
+
+/* ── CTA SECTION ───────────────────────────────────────────────────────────── */
+.cta-section{position:relative;border-radius:24px;overflow:hidden;padding:80px 60px;text-align:center;background:#000;border:1px solid rgba(255,255,255,.08)}
+.cta-bg{position:absolute;inset:0;pointer-events:none}
+.cta-section h2{font-size:clamp(28px,5vw,56px);font-weight:900;color:#fff;letter-spacing:-2px;margin-bottom:18px;position:relative;z-index:1}
+.cta-section p{font-size:17px;color:rgba(255,255,255,.4);margin-bottom:36px;position:relative;z-index:1}
+.cta-section .btn{position:relative;z-index:1;padding:16px 36px;font-size:16px;border-radius:11px}
+
+/* ── FOOTER ────────────────────────────────────────────────────────────────── */
+footer{background:#000;border-top:1px solid var(--border);padding:64px 0 32px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:56px}
+.footer-brand .logo{font-size:22px;display:inline-block;margin-bottom:14px}
+.footer-brand p{font-size:14px;color:rgba(255,255,255,.3);line-height:1.7;max-width:280px}
+.footer-col h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);margin-bottom:18px}
+.footer-col a{display:block;font-size:14px;color:rgba(255,255,255,.4);margin-bottom:10px;transition:.2s}
+.footer-col a:hover{color:#fff}
+.footer-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:28px;border-top:1px solid var(--border);font-size:13px;color:rgba(255,255,255,.2)}
+
+/* ── MODAL ─────────────────────────────────────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(16px);z-index:1000;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:480px;position:relative}
-.modal h2{font-size:22px;font-weight:800;margin-bottom:4px;color:var(--white)}
-.modal p{font-size:14px;color:var(--muted);margin-bottom:28px}
-.close-btn{position:absolute;top:16px;right:16px;background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer}
-.form-group{margin-bottom:18px}
-.form-group label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px}
-.form-group input,.form-group select{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;
-padding:12px 16px;color:var(--text);font-size:14px;outline:none;transition:.2s}
-.form-group input:focus,.form-group select:focus{border-color:var(--brand)}
-.form-err{color:var(--red);font-size:13px;margin-top:6px;display:none}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:28px}
-.tab-btn{flex:1;background:transparent;border:none;color:var(--muted);font-size:15px;font-weight:600;padding:12px;cursor:pointer;transition:.2s;border-bottom:2px solid transparent}
-.tab-btn.active{color:var(--brand);border-bottom-color:var(--brand)}
-.spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:768px){
-  .nav-links{display:none}.footer-grid{grid-template-columns:1fr 1fr}
-  .hero h1{font-size:36px}.cta-section{padding:48px 24px}
-  .form-row{grid-template-columns:1fr}
+.modal{background:#0a0a0a;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:36px;width:100%;max-width:480px;box-shadow:0 40px 120px rgba(0,0,0,.8)}
+.modal h2{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px;margin-bottom:6px}
+.modal-sub{font-size:14px;color:rgba(255,255,255,.35);margin-bottom:28px}
+.tabs{display:flex;gap:0;background:rgba(255,255,255,.05);border-radius:10px;padding:4px;margin-bottom:24px}
+.tab{flex:1;text-align:center;padding:9px;font-size:13px;font-weight:600;color:rgba(255,255,255,.4);cursor:pointer;border-radius:8px;transition:.15s}
+.tab.active{background:rgba(99,102,241,.2);color:var(--brand)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.form-group input,.form-group select{width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;outline:none;transition:.15s;font-family:inherit}
+.form-group input:focus,.form-group select:focus{border-color:rgba(99,102,241,.5);background:rgba(99,102,241,.05)}
+.form-group select option{background:#111}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-err{font-size:13px;color:#f87171;min-height:18px;margin-top:4px}
+.modal-btn{width:100%;padding:14px;font-size:15px;border-radius:10px;margin-top:6px}
+.modal-footer{text-align:center;font-size:13px;color:rgba(255,255,255,.3);margin-top:16px}
+.modal-footer a{color:var(--brand);cursor:pointer}
+.modal-close{position:absolute;top:18px;right:20px;background:rgba(255,255,255,.06);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;color:rgba(255,255,255,.4);font-size:16px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.modal-close:hover{background:rgba(255,255,255,.12);color:#fff}
+
+/* ── ANIMATIONS ────────────────────────────────────────────────────────────── */
+.fade-in{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+
+/* ── RESPONSIVE ────────────────────────────────────────────────────────────── */
+@media(max-width:900px){
+  .nav-links,.hero-card{display:none}
+  .nav-inner{padding:16px 20px}
+  .hero-content{padding:100px 20px 80px}
+  .steps{grid-template-columns:1fr 1fr;gap:40px}
+  .steps::before{display:none}
+  .footer-grid{grid-template-columns:1fr 1fr}
+  .cta-section{padding:52px 28px}
+  .section{padding:80px 0}
+}
+@media(max-width:560px){
+  .steps{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+  .belt-track{gap:28px}
 }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-<div class="nav-inner">
-  <span class="logo">⚡ PropelPay</span>
-  <div class="nav-links">
-    <a href="#features">Features</a>
-    <a href="#how-it-works">How It Works</a>
-    <a href="#pricing">Pricing</a>
-    <a href="#faq">FAQ</a>
+<!-- ── NAV ──────────────────────────────────────────────────────────────────── -->
+<nav id="mainNav">
+  <div class="nav-inner">
+    <div class="logo">⚡ PropelPay</div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-cta">
+      <button class="btn btn-nav btn-sm" onclick="openAuth('login')">Sign In</button>
+      <button class="btn btn-primary btn-sm" onclick="openAuth('register')">Get Started Free →</button>
+    </div>
   </div>
-  <div class="nav-cta">
-    <button class="btn btn-outline" style="padding:9px 18px;font-size:14px" onclick="openAuth('login')">Log In</button>
-    <button class="btn btn-primary" style="padding:9px 18px;font-size:14px" onclick="openAuth('register')">Start Free →</button>
-  </div>
-</div>
 </nav>
 
-<!-- HERO -->
-<section class="hero">
-<div class="container">
-<div class="hero-content">
-  <div class="hero-badge">🚀 Built for African freelancers &amp; agencies</div>
-  <h1>Stop Chasing.<br><span>Start Getting Paid.</span></h1>
-  <p>Write AI proposals in 30 seconds, collect e-signatures, send invoices and let PropelPay automatically chase your clients for payment. While you sleep.</p>
-  <div class="hero-cta">
-    <button class="btn btn-primary" style="padding:16px 32px;font-size:16px" onclick="openAuth('register')">Start for Free — No Credit Card ⚡</button>
-    <button class="btn btn-outline" style="padding:16px 32px;font-size:16px" onclick="scrollTo('#how-it-works')">See How It Works</button>
+<!-- ── HERO ──────────────────────────────────────────────────────────────────── -->
+<section class="hero" id="hero">
+  <canvas id="heroCanvas"></canvas>
+
+  <!-- Floating performance card -->
+  <div class="hero-card">
+    <div class="card-label">Revenue this month</div>
+    <div class="card-amount" id="cardCounter">₦0</div>
+    <div class="card-arrow">↗</div>
+    <div class="card-sub">+28% vs last month</div>
   </div>
-  <div class="hero-stats">
-    <div class="stat"><span class="stat-num">$1.5T</span><span class="stat-label">Lost in unpaid invoices globally/yr</span></div>
-    <div class="stat"><span class="stat-num">10hrs</span><span class="stat-label">Saved per month per user</span></div>
-    <div class="stat"><span class="stat-num">43%→</span><span class="stat-label">Avg proposal close rate improvement</span></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow"><span class="hero-eyebrow-dot"></span> Built for Africa. Ready for the World.</div>
+    <h1>Invoice smarter.<br><span class="line2">Get paid faster.</span></h1>
+    <p class="hero-sub">AI-powered proposals, e-signatures, multi-currency invoicing and automated payment chasing — all in one platform.</p>
+    <div class="hero-cta">
+      <button class="btn btn-primary" onclick="openAuth('register')">Start for free — no card needed →</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">See how it works</button>
+    </div>
+    <div class="hero-stats">
+      <div><div class="h-stat-val">₦0</div><div class="h-stat-lab">to get started</div></div>
+      <div><div class="h-stat-val">2 mins</div><div class="h-stat-lab">to first invoice</div></div>
+      <div><div class="h-stat-val">7+</div><div class="h-stat-lab">currencies supported</div></div>
+      <div><div class="h-stat-val">98%</div><div class="h-stat-lab">WhatsApp open rate</div></div>
+    </div>
   </div>
-</div>
-</div>
 </section>
 
-<!-- FEATURES -->
+<!-- ── PARTNER BELT ────────────────────────────────────────────────────────── -->
+<div class="logo-belt">
+  <div class="belt-label">Payments powered by</div>
+  <div class="belt-track">
+    <span class="belt-logo">PAYSTACK</span>
+    <span class="belt-logo" style="opacity:.12">·</span>
+    <span class="belt-logo">FLUTTERWAVE</span>
+    <span class="belt-logo" style="opacity:.12">·</span>
+    <span class="belt-logo">GTBank</span>
+    <span class="belt-logo" style="opacity:.12">·</span>
+    <span class="belt-logo">ZENITH</span>
+    <span class="belt-logo" style="opacity:.12">·</span>
+    <span class="belt-logo">WHATSAPP BUSINESS</span>
+    <span class="belt-logo" style="opacity:.12">·</span>
+    <span class="belt-logo">M-PESA</span>
+  </div>
+</div>
+
+<!-- ── FEATURES ───────────────────────────────────────────────────────────── -->
 <section class="section" id="features">
-<div class="container">
-  <div class="section-badge">Everything You Need</div>
-  <div class="section-title">One platform. Every tool you need<br>to get paid faster.</div>
-  <div class="section-sub">Stop switching between 5 different tools. PropelPay combines proposals, contracts, invoicing and automated follow-ups — all powered by AI.</div>
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon">🤖</div>
-      <div class="feature-title">AI Proposal Writer</div>
-      <div class="feature-desc">Describe your project in plain English. Our AI writes a complete, professional proposal with pricing, scope, timeline and terms in under 30 seconds.</div>
+  <div class="container">
+    <div class="fade-in">
+      <div class="section-eyebrow">Everything you need</div>
+      <div class="section-title">One platform.<br>Zero admin stress.</div>
+      <div class="section-sub">Stop chasing payments. Stop losing time on admin. PropelPay automates the entire revenue cycle for you.</div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">✍️</div>
-      <div class="feature-title">E-Signature Built In</div>
-      <div class="feature-desc">Clients sign proposals directly from their phone or browser. No printing, no scanning. Legally binding with IP logging and timestamp.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🧾</div>
-      <div class="feature-title">Smart Invoicing</div>
-      <div class="feature-desc">Create professional invoices in seconds. Add line items, apply tax and discounts, set due dates. Beautiful PDF sent directly to your client.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">💳</div>
-      <div class="feature-title">Paystack &amp; Bank Transfer</div>
-      <div class="feature-desc">Accept Paystack payments directly on invoices. Or display your bank details for instant transfers. Money hits your account automatically.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🔁</div>
-      <div class="feature-title">Auto Payment Reminders</div>
-      <div class="feature-desc">AI writes escalating reminder emails for overdue invoices. From friendly to firm to urgent — sent automatically so you don't have to chase.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📊</div>
-      <div class="feature-title">Revenue Dashboard</div>
-      <div class="feature-desc">See exactly what you've earned, what's pending, and what's overdue. AI insights tell you how to improve your collection rate this month.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">👥</div>
-      <div class="feature-title">Client CRM</div>
-      <div class="feature-desc">Keep all your client contacts organized. Full history of proposals and invoices per client. Never lose track of a deal again.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🌍</div>
-      <div class="feature-title">Multi-Currency</div>
-      <div class="feature-desc">Bill in NGN, USD, GBP, EUR or any currency. Serve clients in Nigeria, UK, US or anywhere in the world with the same account.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🔗</div>
-      <div class="feature-title">Public Payment Links</div>
-      <div class="feature-desc">Every invoice gets a unique shareable link. Share on WhatsApp, email or Telegram. Client pays in 2 clicks without signing up.</div>
-    </div>
-  </div>
-</div>
-</section>
-
-<!-- HOW IT WORKS -->
-<section class="section" id="how-it-works" style="background:var(--card2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
-<div class="container">
-  <div style="text-align:center;margin-bottom:64px">
-    <div class="section-badge">Simple Process</div>
-    <div class="section-title">From project to payment in 4 steps</div>
-  </div>
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-title">Add Your Client</div>
-      <div class="step-desc">Save client name, email and company. Takes 30 seconds. PropelPay remembers everything.</div>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-title">AI Writes Your Proposal</div>
-      <div class="step-desc">Tell the AI your project scope. It writes a full professional proposal with pricing. You review and send.</div>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-title">Client Signs Online</div>
-      <div class="step-desc">Client receives a link, reads the proposal on their phone and signs with one tap. You get notified instantly.</div>
-    </div>
-    <div class="step">
-      <div class="step-num">4</div>
-      <div class="step-title">Get Paid Automatically</div>
-      <div class="step-desc">Invoice is sent. If client delays, PropelPay sends AI-written reminders automatically until you're paid.</div>
-    </div>
-  </div>
-</div>
-</section>
-
-<!-- PRICING -->
-<section class="section" id="pricing">
-<div class="container" style="text-align:center">
-  <div class="section-badge">Fair Pricing</div>
-  <div class="section-title">Start free. Upgrade when you're ready.</div>
-  <div class="section-sub" style="margin:0 auto 0">Priced for African freelancers. No hidden fees. Cancel anytime.</div>
-  <div class="pricing-grid">
-    <div class="price-card">
-      <div class="plan-name">Free</div>
-      <div class="plan-price">₦0<span></span></div>
-      <div class="plan-period">Forever free</div>
-      <ul class="plan-features">
-        <li>3 proposals/month</li>
-        <li>5 invoices/month</li>
-        <li>5 clients</li>
-        <li>3 AI drafts</li>
-        <li>E-signatures</li>
-        <li>Paystack payments</li>
-      </ul>
-      <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openAuth('register')">Get Started Free</button>
-    </div>
-    <div class="price-card popular">
-      <div class="popular-badge">⚡ Most Popular</div>
-      <div class="plan-name">Solo</div>
-      <div class="plan-price">₦9,900<span></span></div>
-      <div class="plan-period">per month · ~$15 USD</div>
-      <ul class="plan-features">
-        <li>50 proposals/month</li>
-        <li>100 invoices/month</li>
-        <li>50 clients</li>
-        <li>50 AI drafts</li>
-        <li>Auto payment reminders</li>
-        <li>Priority email support</li>
-      </ul>
-      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openAuth('register')">Start Solo Plan →</button>
-    </div>
-    <div class="price-card">
-      <div class="plan-name">Agency</div>
-      <div class="plan-price">₦24,900<span></span></div>
-      <div class="plan-period">per month · ~$29 USD</div>
-      <ul class="plan-features">
-        <li>Unlimited proposals</li>
-        <li>Unlimited invoices</li>
-        <li>Unlimited clients</li>
-        <li>Unlimited AI drafts</li>
-        <li>White-label PDFs</li>
-        <li>API access</li>
-        <li>Priority support</li>
-      </ul>
-      <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openAuth('register')">Start Agency Plan</button>
-    </div>
-    <div class="price-card">
-      <div class="plan-name">Enterprise</div>
-      <div class="plan-price">₦79,900<span></span></div>
-      <div class="plan-period">per month · ~$79 USD</div>
-      <ul class="plan-features">
-        <li>Everything in Agency</li>
-        <li>Custom branding</li>
-        <li>Dedicated support</li>
-        <li>Custom integrations</li>
-        <li>SLA guarantee</li>
-        <li>Team accounts</li>
-      </ul>
-      <button class="btn btn-outline" style="width:100%;justify-content:center" onclick="openAuth('register')">Contact Sales</button>
-    </div>
-  </div>
-</div>
-</section>
-
-<!-- TESTIMONIALS -->
-<section class="section" style="background:var(--card2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
-<div class="container">
-  <div style="text-align:center;margin-bottom:64px">
-    <div class="section-badge">Social Proof</div>
-    <div class="section-title">Freelancers are already getting paid faster</div>
-  </div>
-  <div class="testimonials">
-    <div class="testimonial">
-      <div class="t-stars">★★★★★</div>
-      <div class="t-text">"I used to spend 3 hours writing proposals. Now PropelPay AI does it in 30 seconds and my close rate went from 30% to 65%. This tool literally makes me money."</div>
-      <div class="t-author"><div class="t-avatar">A</div><div><div class="t-name">Adaeze Okafor</div><div class="t-role">UI/UX Designer, Lagos</div></div></div>
-    </div>
-    <div class="testimonial">
-      <div class="t-stars">★★★★★</div>
-      <div class="t-text">"I had ₦840,000 sitting in overdue invoices. PropelPay's automatic reminders recovered ₦620,000 in 2 weeks without me sending a single message myself."</div>
-      <div class="t-author"><div class="t-avatar">K</div><div><div class="t-name">Kwame Asante</div><div class="t-role">Marketing Agency Owner, Accra</div></div></div>
-    </div>
-    <div class="testimonial">
-      <div class="t-stars">★★★★★</div>
-      <div class="t-text">"As a developer working with UK clients, PropelPay lets me invoice in GBP and accept Paystack in Nigeria. The e-signature feature makes contracts seamless."</div>
-      <div class="t-author"><div class="t-avatar">T</div><div><div class="t-name">Tunde Adeleke</div><div class="t-role">Fullstack Developer, Abuja</div></div></div>
-    </div>
-  </div>
-</div>
-</section>
-
-<!-- FAQ -->
-<section class="section" id="faq">
-<div class="container" style="text-align:center">
-  <div class="section-badge">FAQ</div>
-  <div class="section-title">Frequently Asked Questions</div>
-  <div class="faq">
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">Is PropelPay really free to start? <span class="faq-icon">+</span></button>
-      <div class="faq-a">Yes — completely free, no credit card needed. You get 3 proposals, 5 invoices, 5 clients and 3 AI drafts per month. Upgrade only when you need more.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">How does the AI proposal writer work? <span class="faq-icon">+</span></button>
-      <div class="faq-a">You describe your service, scope and client name. Our AI (powered by Groq/Llama) writes a complete professional proposal with executive summary, scope of work, deliverables, timeline, pricing and terms. You can edit anything before sending.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">Are e-signatures legally binding? <span class="faq-icon">+</span></button>
-      <div class="faq-a">Yes. PropelPay captures the signer's name, email, IP address, timestamp and browser fingerprint. This creates an audit trail that is legally binding in Nigeria and most countries under electronic signature laws.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">How does automatic payment chasing work? <span class="faq-icon">+</span></button>
-      <div class="faq-a">When an invoice is overdue, PropelPay sends AI-written reminder emails to your client. The tone escalates from friendly to firm to urgent the longer it's overdue. You can also manually trigger reminders anytime from your dashboard.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">Can my clients pay without signing up? <span class="faq-icon">+</span></button>
-      <div class="faq-a">Yes. Every invoice gets a unique public link. Your client opens it, sees the invoice and pays directly via Paystack — no account needed. You can also share the link on WhatsApp or any messaging app.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">What currencies are supported? <span class="faq-icon">+</span></button>
-      <div class="faq-a">You can invoice in any currency — NGN, USD, GBP, EUR, GHS, KES and more. Paystack payments work in NGN, USD, GBP and EUR. For other currencies, bank transfer details are displayed automatically.</div>
-    </div>
-  </div>
-</div>
-</section>
-
-<!-- FINAL CTA -->
-<section class="section">
-<div class="container">
-  <div class="cta-section">
-    <div style="font-size:48px;margin-bottom:16px">⚡</div>
-    <h2 style="font-size:42px;font-weight:900;margin-bottom:16px;color:var(--white)">Stop losing money to late payments.</h2>
-    <p style="font-size:18px;color:var(--muted);max-width:480px;margin:0 auto 40px;line-height:1.7">Join thousands of freelancers and agencies who send faster proposals and collect payments automatically with PropelPay.</p>
-    <button class="btn btn-primary" style="padding:18px 40px;font-size:17px" onclick="openAuth('register')">Start for Free — Takes 60 Seconds →</button>
-    <p style="margin-top:16px;font-size:13px;color:var(--muted)">No credit card · Free forever plan · Setup in 60 seconds</p>
-  </div>
-</div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-<div class="container">
-  <div class="footer-grid">
-    <div class="footer-brand">
-      <span class="logo">⚡ PropelPay</span>
-      <p>The all-in-one platform for freelancers and agencies to send proposals, collect signatures and get paid faster.</p>
-    </div>
-    <div class="footer-col">
-      <h4>Product</h4>
-      <a href="#features">Features</a>
-      <a href="#pricing">Pricing</a>
-      <a href="#how-it-works">How It Works</a>
-      <a href="/docs">API Docs</a>
-    </div>
-    <div class="footer-col">
-      <h4>Use Cases</h4>
-      <a href="#">Freelancers</a>
-      <a href="#">Agencies</a>
-      <a href="#">Consultants</a>
-      <a href="#">Small Business</a>
-    </div>
-    <div class="footer-col">
-      <h4>Company</h4>
-      <a href="#">About</a>
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="#">Contact</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p>© 2026 PropelPay. Built with ❤️ for African creators.</p>
-    <p>Powered by Paystack · AI by Groq</p>
-  </div>
-</div>
-</footer>
-
-<!-- AUTH MODAL -->
-<div class="modal-overlay" id="authModal">
-<div class="modal">
-  <button class="close-btn" onclick="closeAuth()">×</button>
-  <div class="tabs">
-    <button class="tab-btn active" id="loginTab" onclick="switchTab('login')">Log In</button>
-    <button class="tab-btn" id="registerTab" onclick="switchTab('register')">Sign Up Free</button>
-  </div>
-  <!-- LOGIN FORM -->
-  <div id="loginForm">
-    <h2>Welcome back 👋</h2>
-    <p>Log in to your PropelPay account</p>
-    <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
-    <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
-    <div class="form-err" id="loginErr"></div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="doLogin()" id="loginBtn">
-      <span class="spinner" id="loginSpinner"></span>Log In →
-    </button>
-  </div>
-  <!-- REGISTER FORM -->
-  <div id="registerForm" style="display:none">
-    <h2>Create your account 🚀</h2>
-    <p>Free forever. No credit card needed.</p>
-    <div class="form-row">
-      <div class="form-group"><label>Your Name</label><input type="text" id="regName" placeholder="Tunde Adeleke"></div>
-      <div class="form-group"><label>Business Name</label><input type="text" id="regBiz" placeholder="TechStudio NG"></div>
-    </div>
-    <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="you@example.com"></div>
-    <div class="form-row">
-      <div class="form-group"><label>Password</label><input type="password" id="regPass" placeholder="Min 8 characters"></div>
-      <div class="form-group"><label>Currency</label>
-        <select id="regCurrency"><option value="NGN">NGN — Nigerian Naira</option><option value="USD">USD — US Dollar</option><option value="GBP">GBP — British Pound</option><option value="EUR">EUR — Euro</option><option value="GHS">GHS — Ghanaian Cedi</option><option value="KES">KES — Kenyan Shilling</option></select>
+    <div class="features-grid fade-in">
+      <div class="feat">
+        <div class="feat-icon">✨</div>
+        <div class="feat-title">AI Proposal Writer</div>
+        <div class="feat-desc">Describe your scope in a sentence. PropelPay writes a full professional proposal in seconds — with services, pricing, and terms.</div>
+        <div class="feat-accent"></div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🧾</div>
+        <div class="feat-title">Smart Invoicing</div>
+        <div class="feat-desc">Multi-currency invoices with line items, tax, discount, and a live Paystack payment link. Clients pay in 2 taps.</div>
+        <div class="feat-accent"></div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">✍️</div>
+        <div class="feat-title">E-Signatures</div>
+        <div class="feat-desc">Send proposals with a legally binding e-signature link. Track when clients view and sign. Never lose a deal on paperwork.</div>
+        <div class="feat-accent"></div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">💬</div>
+        <div class="feat-title">WhatsApp Reminders</div>
+        <div class="feat-desc">98% open rate. Send AI-crafted payment reminders via WhatsApp Business with a payment link embedded. Chase automatically.</div>
+        <div class="feat-accent"></div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🔄</div>
+        <div class="feat-title">Recurring Billing</div>
+        <div class="feat-desc">Set up monthly retainers once. PropelPay auto-generates and sends invoices on schedule — forever, until you say stop.</div>
+        <div class="feat-accent"></div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">📊</div>
+        <div class="feat-title">Revenue Dashboard</div>
+        <div class="feat-desc">Live charts, AI business insights, collection rate, overdue tracking — everything to understand and grow your cash flow.</div>
+        <div class="feat-accent"></div>
       </div>
     </div>
-    <div class="form-err" id="regErr"></div>
-    <button class="btn btn-green" style="width:100%;justify-content:center;margin-top:8px" onclick="doRegister()" id="regBtn">
-      <span class="spinner" id="regSpinner"></span>Create Free Account →
-    </button>
-    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:12px">By signing up you agree to our Terms of Service and Privacy Policy</p>
   </div>
-</div>
+</section>
+
+<!-- ── HOW IT WORKS ────────────────────────────────────────────────────────── -->
+<section class="section" id="how" style="border-top:1px solid var(--border)">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:72px" class="fade-in">
+      <div class="section-eyebrow">The workflow</div>
+      <div class="section-title">From proposal to payment<br>in 4 steps</div>
+    </div>
+    <div class="steps fade-in">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Add your client</div>
+        <div class="step-desc">Name, email, phone. Takes 30 seconds. That's all you need.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">AI writes the proposal</div>
+        <div class="step-desc">Describe your service. Our AI writes a full, professional proposal. You approve. Client signs.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Convert → Invoice</div>
+        <div class="step-desc">One click converts the accepted proposal into a polished invoice with Paystack payment link.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-title">Get paid automatically</div>
+        <div class="step-desc">Client pays online. Overdue? PropelPay sends WhatsApp and email reminders. You do nothing.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ─────────────────────────────────────────────────────────────── -->
+<section class="section" id="pricing" style="border-top:1px solid var(--border)">
+  <div class="container">
+    <div class="fade-in">
+      <div class="section-eyebrow">Pricing</div>
+      <div class="section-title">Start free.<br>Upgrade when you grow.</div>
+      <div class="section-sub">No credit card. No hidden fees. Cancel anytime.</div>
+    </div>
+    <div class="pricing-grid fade-in">
+      <div class="price-card">
+        <div class="plan-name">Free</div>
+        <div class="plan-price"><sup>₦</sup>0</div>
+        <div class="plan-period">Forever free</div>
+        <ul class="plan-features">
+          <li>3 invoices per month</li>
+          <li>3 AI proposals</li>
+          <li>5 clients</li>
+          <li>Paystack payment links</li>
+          <li>PDF download</li>
+        </ul>
+        <button class="btn btn-outline" onclick="openAuth('register')" style="width:100%;justify-content:center">Get started free</button>
+      </div>
+      <div class="price-card featured">
+        <div class="feat-tag">Most Popular</div>
+        <div class="plan-name">Solo</div>
+        <div class="plan-price"><sup>₦</sup>9,900<sub>/mo</sub></div>
+        <div class="plan-period">Billed monthly · ~$6 USD</div>
+        <ul class="plan-features">
+          <li>100 invoices per month</li>
+          <li>50 AI proposals</li>
+          <li>50 clients</li>
+          <li>Recurring billing</li>
+          <li>WhatsApp reminders</li>
+          <li>Email delivery tracking</li>
+          <li>Multi-currency banks</li>
+        </ul>
+        <button class="btn btn-primary" onclick="openAuth('register')" style="width:100%;justify-content:center">Start Solo plan →</button>
+      </div>
+      <div class="price-card">
+        <div class="plan-name">Agency</div>
+        <div class="plan-price"><sup>₦</sup>24,900<sub>/mo</sub></div>
+        <div class="plan-period">Billed monthly · ~$15 USD</div>
+        <ul class="plan-features">
+          <li>Unlimited invoices</li>
+          <li>Unlimited proposals</li>
+          <li>Unlimited clients</li>
+          <li>Unlimited recurring</li>
+          <li>API access</li>
+          <li>Priority support</li>
+          <li>White-label PDF invoices</li>
+        </ul>
+        <button class="btn btn-outline" onclick="openAuth('register')" style="width:100%;justify-content:center">Start Agency plan</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ────────────────────────────────────────────────────────── -->
+<section class="section" style="border-top:1px solid var(--border)">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:16px" class="fade-in">
+      <div class="section-eyebrow">Social Proof</div>
+      <div class="section-title">Freelancers getting paid faster</div>
+    </div>
+    <div class="testi-grid fade-in">
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"I sent my first AI proposal in 4 minutes. Client signed same day. Got paid 2 days later via Paystack. PropelPay is the real deal."</div>
+        <div class="testi-author"><div class="testi-avatar">T</div><div><div class="testi-name">Tunde A.</div><div class="testi-role">Brand Designer, Lagos</div></div></div>
+      </div>
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"The WhatsApp reminders are genius. My collection rate went from 60% to 94% in 3 weeks. I stopped chasing and started closing."</div>
+        <div class="testi-author"><div class="testi-avatar">A</div><div><div class="testi-name">Amara K.</div><div class="testi-role">Web Developer, Accra</div></div></div>
+      </div>
+      <div class="testi">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"Set up recurring billing for my 6 retainer clients. Now ₦847,000 hits my account automatically every month without me lifting a finger."</div>
+        <div class="testi-author"><div class="testi-avatar">C</div><div><div class="testi-name">Chisom O.</div><div class="testi-role">Marketing Agency, Abuja</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ─────────────────────────────────────────────────────────────────── -->
+<section class="section" id="faq" style="border-top:1px solid var(--border)">
+  <div class="container" style="max-width:760px">
+    <div style="text-align:center;margin-bottom:56px" class="fade-in">
+      <div class="section-eyebrow">FAQ</div>
+      <div class="section-title">Common questions</div>
+    </div>
+    <div id="faqList" class="fade-in"></div>
+  </div>
+</section>
+
+<!-- ── CTA ─────────────────────────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="cta-section fade-in">
+      <canvas id="ctaCanvas" class="cta-bg" style="width:100%;height:100%;position:absolute;inset:0"></canvas>
+      <h2>Ready to get paid faster?</h2>
+      <p>Join thousands of African freelancers and agencies using PropelPay.<br>Free forever. No credit card.</p>
+      <button class="btn btn-primary" onclick="openAuth('register')">Create your free account →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ──────────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo">⚡ PropelPay</div>
+        <p>The premium invoicing platform for freelancers and agencies. Send. Sign. Get Paid.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#how">How it works</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div class="footer-col">
+        <h4>Use cases</h4>
+        <a href="#">Freelancers</a>
+        <a href="#">Agencies</a>
+        <a href="#">Consultants</a>
+        <a href="#">Creatives</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 PropelPay. All rights reserved.</span>
+      <span>Built for Africa 🌍</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ── AUTH MODAL ──────────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="closeAuth()">✕</button>
+    <h2 id="modalTitle">Welcome back</h2>
+    <div class="modal-sub" id="modalSub">Sign in to your PropelPay account</div>
+    <div class="tabs">
+      <div class="tab active" id="tab-login" onclick="switchTab('login')">Sign In</div>
+      <div class="tab" id="tab-register" onclick="switchTab('register')">Create Account</div>
+    </div>
+    <!-- Login -->
+    <div id="loginForm">
+      <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
+      <div class="form-err" id="loginErr"></div>
+      <button class="btn btn-primary modal-btn" onclick="doLogin()">Sign In →</button>
+      <div class="modal-footer">No account? <a onclick="switchTab('register')">Create one free</a></div>
+    </div>
+    <!-- Register -->
+    <div id="registerForm" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label>Your Name</label><input type="text" id="regName" placeholder="Tunde Adeleke"></div>
+        <div class="form-group"><label>Business Name</label><input type="text" id="regBiz" placeholder="TechStudio NG"></div>
+      </div>
+      <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="you@example.com"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Password</label><input type="password" id="regPass" placeholder="Min 8 chars"></div>
+        <div class="form-group"><label>Currency</label>
+          <select id="regCurrency">
+            <option value="NGN">🇳🇬 NGN — Naira</option>
+            <option value="GHS">🇬🇭 GHS — Cedi</option>
+            <option value="KES">🇰🇪 KES — Shilling</option>
+            <option value="USD">🇺🇸 USD — Dollar</option>
+            <option value="GBP">🇬🇧 GBP — Pound</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-err" id="regErr"></div>
+      <button class="btn btn-primary modal-btn" onclick="doRegister()">Create Account →</button>
+      <div class="modal-footer">Already have an account? <a onclick="switchTab('login')">Sign in</a></div>
+    </div>
+  </div>
 </div>
 
 <script>
-const API = window.location.origin;
+// ── FLUID CANVAS ANIMATION (matches the video) ────────────────────────────────
+(function(){
+  const canvas = document.getElementById('heroCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, t = 0, raf;
 
-function openAuth(tab){ document.getElementById('authModal').classList.add('open'); switchTab(tab) }
-function closeAuth(){ document.getElementById('authModal').classList.remove('open') }
-function switchTab(t){
-  document.getElementById('loginForm').style.display = t==='login'?'block':'none';
-  document.getElementById('registerForm').style.display = t==='register'?'block':'none';
-  document.getElementById('loginTab').classList.toggle('active',t==='login');
-  document.getElementById('registerTab').classList.toggle('active',t==='register');
+  function resize(){
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Fluid wave particles
+  const waves = [
+    {color:[80,80,240],  speed:.0006, amp:.38, freq:.9,  xOff:.1, yOff:.5,  width:.8, alpha:.55},
+    {color:[120,60,220], speed:.0004, amp:.3,  freq:1.1, xOff:.15,yOff:.55, width:.7, alpha:.4},
+    {color:[160,100,255],speed:.0008, amp:.25, freq:.7,  xOff:.05,yOff:.52, width:.9, alpha:.3},
+    {color:[200,160,255],speed:.0003, amp:.2,  freq:1.3, xOff:.2, yOff:.48, width:.6, alpha:.2},
+    {color:[60,40,200],  speed:.001,  amp:.15, freq:1.6, xOff:.0, yOff:.5,  width:.5, alpha:.15},
+  ];
+
+  function easeWave(x, cx, w){
+    const d = Math.abs(x - cx);
+    const r = w * W * .5;
+    if(d > r) return 0;
+    return Math.pow(Math.cos((d/r) * Math.PI * .5), 2);
+  }
+
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+
+    // Deep background glow (subtle blue-purple radial)
+    const bg = ctx.createRadialGradient(W*.6, H*.4, 0, W*.6, H*.4, W*.7);
+    bg.addColorStop(0, 'rgba(60,60,180,.08)');
+    bg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Draw each wave ribbon
+    waves.forEach((wv, wi) => {
+      const phase = t * wv.speed * 10000;
+      const cx = W * wv.xOff + Math.sin(phase * .7 + wi) * W * .2;
+      const cy = H * wv.yOff + Math.cos(phase * .5 + wi * .8) * H * .08;
+
+      ctx.save();
+      ctx.beginPath();
+
+      // Build ribbon path along X axis
+      const pts = 200;
+      for(let i = 0; i <= pts; i++){
+        const x = (i / pts) * W;
+        const e = easeWave(x, cx, wv.width);
+        const y = cy + Math.sin(x * wv.freq * .01 + phase + wi) * H * wv.amp * e
+                      + Math.cos(x * wv.freq * .007 + phase * .6) * H * .06 * e;
+        if(i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+
+      // Make ribbon thick using stroke
+      const strokeW = H * .18 * wv.amp;
+      ctx.lineWidth = strokeW;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // Gradient stroke color
+      const gx = ctx.createLinearGradient(0, 0, W, 0);
+      const [r,g,b] = wv.color;
+      gx.addColorStop(0,   `rgba(${r},${g},${b},0)`);
+      gx.addColorStop(.15, `rgba(${r},${g},${b},${wv.alpha * .3})`);
+      gx.addColorStop(.4,  `rgba(${r},${g},${b},${wv.alpha})`);
+      gx.addColorStop(.65, `rgba(${r},${g},${b},${wv.alpha * .7})`);
+      gx.addColorStop(1,   `rgba(${r},${g},${b},0)`);
+      ctx.strokeStyle = gx;
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // Bright highlight streak
+    const hx = W * (.3 + Math.sin(t*.0004) * .2);
+    const hy = H * (.48 + Math.cos(t*.0003) * .04);
+    const streak = ctx.createLinearGradient(hx - W*.15, hy, hx + W*.3, hy);
+    streak.addColorStop(0, 'rgba(255,255,255,0)');
+    streak.addColorStop(.3,'rgba(200,200,255,.08)');
+    streak.addColorStop(.5,'rgba(220,220,255,.15)');
+    streak.addColorStop(.7,'rgba(200,200,255,.06)');
+    streak.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.beginPath();
+    ctx.ellipse(hx + W*.05, hy, W*.3, H*.06, -.05, 0, Math.PI*2);
+    ctx.fillStyle = streak;
+    ctx.fill();
+
+    // Bottom fade to black (keep text readable)
+    const fade = ctx.createLinearGradient(0, H*.3, 0, H);
+    fade.addColorStop(0, 'rgba(0,0,0,0)');
+    fade.addColorStop(1, 'rgba(0,0,0,.95)');
+    ctx.fillStyle = fade;
+    ctx.fillRect(0, H*.3, W, H*.7);
+
+    t++; raf = requestAnimationFrame(draw);
+  }
+  draw();
+
+  // Same mini wave for CTA section
+  const ctaC = document.getElementById('ctaCanvas');
+  if(ctaC){
+    const ctaCtx = ctaC.getContext('2d');
+    function resizeCta(){ ctaC.width=ctaC.offsetWidth; ctaC.height=ctaC.offsetHeight; }
+    resizeCta(); window.addEventListener('resize', resizeCta);
+    function drawCta(){
+      const cW=ctaC.width, cH=ctaC.height, tt=Date.now()*.001;
+      ctaCtx.clearRect(0,0,cW,cH);
+      const g=ctaCtx.createRadialGradient(cW*.5,cH*.5,0,cW*.5,cH*.5,cW*.6);
+      g.addColorStop(0,'rgba(99,102,241,.12)');g.addColorStop(1,'rgba(0,0,0,0)');
+      ctaCtx.fillStyle=g;ctaCtx.fillRect(0,0,cW,cH);
+      [0,1,2].forEach(i=>{
+        ctaCtx.beginPath();
+        const py=cH*(.5+Math.sin(tt*.4+i)*0.15);
+        for(let x=0;x<=cW;x+=4){
+          const y=py+Math.sin(x*.01+tt*.6+i*1.5)*cH*.08;
+          x===0?ctaCtx.moveTo(x,y):ctaCtx.lineTo(x,y);
+        }
+        ctaCtx.lineWidth=2;
+        ctaCtx.strokeStyle=`rgba(99,102,241,${.04+i*.02})`;
+        ctaCtx.stroke();
+      });
+      requestAnimationFrame(drawCta);
+    }
+    drawCta();
+  }
+})();
+
+// ── COUNTER ANIMATION (revenue card) ──────────────────────────────────────────
+(function(){
+  const el = document.getElementById('cardCounter');
+  const target = 1247600;
+  let current = 0;
+  const duration = 2800;
+  const start = Date.now();
+  function tick(){
+    const elapsed = Date.now() - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 4);
+    current = Math.floor(ease * target);
+    el.textContent = '₦' + current.toLocaleString();
+    if(progress < 1) setTimeout(tick, 16);
+  }
+  setTimeout(tick, 800);
+})();
+
+// ── NAV SCROLL ─────────────────────────────────────────────────────────────────
+window.addEventListener('scroll', ()=>{
+  document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// ── SCROLL FADE-IN ─────────────────────────────────────────────────────────────
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, {threshold:.12});
+document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
+
+// ── FAQ ────────────────────────────────────────────────────────────────────────
+const faqs = [
+  {q:"Is PropelPay really free?", a:"Yes. The free plan includes 3 invoices, 3 AI proposals and 5 clients — forever. No credit card required."},
+  {q:"How do clients pay?", a:"Every invoice gets a Paystack payment link. Clients pay by card, bank transfer, USSD, or mobile money directly on the invoice page."},
+  {q:"Does it work outside Nigeria?", a:"Absolutely. PropelPay supports NGN, GHS, KES, ZAR, USD, GBP, and EUR. You can add bank accounts for each currency."},
+  {q:"How do WhatsApp reminders work?", a:"Connect your WhatsApp Business API. Click the WhatsApp button on any overdue invoice — an AI writes the message for you, you approve and send in 1 click."},
+  {q:"Can I convert proposals into invoices?", a:"Yes. One click converts any accepted proposal into a pre-filled draft invoice with all line items, client details, and currency."},
+  {q:"What is recurring billing?", a:"Set up a repeating invoice schedule (weekly, monthly, quarterly). PropelPay auto-generates and sends the invoice on each billing date — you do nothing."},
+];
+document.getElementById('faqList').innerHTML = faqs.map((f,i)=>`
+<div style="border-bottom:1px solid rgba(255,255,255,.06);overflow:hidden">
+  <button onclick="toggleFaq(${i})" style="width:100%;text-align:left;background:none;border:none;padding:20px 0;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px">
+    <span style="font-size:15px;font-weight:600;color:#fff">${f.q}</span>
+    <span id="faq-arrow-${i}" style="color:rgba(255,255,255,.3);font-size:18px;flex-shrink:0;transition:.2s">+</span>
+  </button>
+  <div id="faq-body-${i}" style="display:none;padding-bottom:20px;font-size:14px;color:rgba(255,255,255,.45);line-height:1.75">${f.a}</div>
+</div>`).join('');
+
+function toggleFaq(i){
+  const body=document.getElementById('faq-body-'+i), arrow=document.getElementById('faq-arrow-'+i);
+  const open=body.style.display==='block';
+  body.style.display=open?'none':'block';
+  arrow.textContent=open?'+':'−';
+  arrow.style.color=open?'rgba(255,255,255,.3)':'#6366f1';
 }
-function scrollTo(sel){ document.querySelector(sel)?.scrollIntoView({behavior:'smooth'}) }
-function toggleFaq(btn){ btn.closest('.faq-item').classList.toggle('open') }
 
-function showErr(id,msg){ const e=document.getElementById(id); e.textContent=msg; e.style.display='block' }
-function hideErr(id){ document.getElementById(id).style.display='none' }
-function setLoading(btnId, spinnerId, loading){
-  const btn=document.getElementById(btnId), sp=document.getElementById(spinnerId);
-  btn.disabled=loading; sp.style.display=loading?'inline-block':'none';
+// ── AUTH ───────────────────────────────────────────────────────────────────────
+function openAuth(mode='login'){
+  document.getElementById('authModal').classList.add('open');
+  switchTab(mode);
 }
+function closeAuth(){ document.getElementById('authModal').classList.remove('open'); }
+function switchTab(tab){
+  document.getElementById('loginForm').style.display    = tab==='login'?'block':'none';
+  document.getElementById('registerForm').style.display = tab==='register'?'block':'none';
+  document.getElementById('tab-login').className    = 'tab'+(tab==='login'?' active':'');
+  document.getElementById('tab-register').className = 'tab'+(tab==='register'?' active':'');
+  document.getElementById('modalTitle').textContent = tab==='login'?'Welcome back':'Create account';
+  document.getElementById('modalSub').textContent   = tab==='login'?'Sign in to PropelPay':'Free forever. No credit card needed.';
+}
+document.getElementById('authModal').addEventListener('click', e=>{ if(e.target.id==='authModal') closeAuth(); });
 
+const API='';
 async function doLogin(){
-  hideErr('loginErr');
   const email=document.getElementById('loginEmail').value.trim();
   const pass=document.getElementById('loginPassword').value;
-  if(!email||!pass){ showErr('loginErr','Please fill all fields'); return; }
-  setLoading('loginBtn','loginSpinner',true);
+  const err=document.getElementById('loginErr');
+  err.textContent='';
+  if(!email||!pass){ err.textContent='Please fill all fields'; return; }
   try{
-    const r=await fetch(`${API}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const r=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
     const d=await r.json();
-    if(!r.ok){ showErr('loginErr',d.detail||'Login failed'); return; }
-    localStorage.setItem('pp_token',d.token);
-    localStorage.setItem('pp_user',JSON.stringify(d.user));
-    window.location.href='/dashboard';
-  }catch(e){ showErr('loginErr','Network error. Please try again.'); }
-  finally{ setLoading('loginBtn','loginSpinner',false); }
+    if(d.token){ localStorage.setItem('pp_token',d.token); localStorage.setItem('pp_user',JSON.stringify(d.user)); location.href='/dashboard'; }
+    else err.textContent=d.detail||'Invalid email or password';
+  }catch(e){ err.textContent='Connection error. Please try again.'; }
 }
-
 async function doRegister(){
-  hideErr('regErr');
   const name=document.getElementById('regName').value.trim();
   const biz=document.getElementById('regBiz').value.trim();
   const email=document.getElementById('regEmail').value.trim();
   const pass=document.getElementById('regPass').value;
-  const currency=document.getElementById('regCurrency').value;
-  if(!name||!email||!pass){ showErr('regErr','Please fill all required fields'); return; }
-  if(pass.length<8){ showErr('regErr','Password must be at least 8 characters'); return; }
-  setLoading('regBtn','regSpinner',true);
+  const cur=document.getElementById('regCurrency').value;
+  const err=document.getElementById('regErr');
+  err.textContent='';
+  if(!name||!email||!pass){ err.textContent='Please fill all fields'; return; }
+  if(pass.length<8){ err.textContent='Password must be at least 8 characters'; return; }
   try{
-    const r=await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({name,email,password:pass,business_name:biz||name,currency})});
+    const r=await fetch(API+'/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password:pass,business_name:biz||name,currency:cur})});
     const d=await r.json();
-    if(!r.ok){ showErr('regErr',d.detail||'Registration failed'); return; }
-    localStorage.setItem('pp_token',d.token);
-    localStorage.setItem('pp_user',JSON.stringify(d.user));
-    window.location.href='/dashboard';
-  }catch(e){ showErr('regErr','Network error. Please try again.'); }
-  finally{ setLoading('regBtn','regSpinner',false); }
+    if(d.token){ localStorage.setItem('pp_token',d.token); localStorage.setItem('pp_user',JSON.stringify(d.user)); location.href='/dashboard'; }
+    else err.textContent=d.detail||'Registration failed. Email may already be in use.';
+  }catch(e){ err.textContent='Connection error. Please try again.'; }
 }
 
-// Close modal on overlay click
-document.getElementById('authModal').addEventListener('click',function(e){ if(e.target===this)closeAuth(); });
-// Enter key support
-document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeAuth(); });
-// Check if already logged in
-if(localStorage.getItem('pp_token') && window.location.pathname==='/'){
-  // Don't auto-redirect on landing page
+// Redirect if already logged in
+if(localStorage.getItem('pp_token')) {
+  const u=document.getElementById('mainNav').querySelector('.nav-cta');
+  if(u) u.innerHTML='<a href="/dashboard" class="btn btn-primary btn-sm">Open Dashboard →</a>';
 }
 </script>
 </body>
