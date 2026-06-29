@@ -8,3 +8,4 @@ from .follow_up import FollowUp
 from .subscription import Subscription
 from .email_log import EmailLog
 from .bank_account import BankAccount
+from .recurring_invoice import RecurringInvoice
