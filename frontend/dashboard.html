@@ -2,1266 +2,636 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PropelPay Dashboard</title>
+<title>PropelPay</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--brand:#6366f1;--brand2:#8b5cf6;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6;
---bg:#070d1a;--sidebar:#0a0f1e;--card:#0d1526;--card2:#111f38;--border:#1a2845;
---text:#e2e8f0;--muted:#64748b;--white:#fff;--grad:linear-gradient(135deg,var(--brand),var(--brand2))}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;display:flex;height:100vh;overflow:hidden}
-
-/* ── SIDEBAR ── */
-.sidebar{width:244px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:relative;z-index:10}
-.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:var(--grad);opacity:.6}
-.sidebar-logo{padding:22px 20px;border-bottom:1px solid var(--border)}
-.logo{font-size:19px;font-weight:900;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.logo-sub{font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px}
-.nav-section{padding:8px 12px 4px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-top:8px}
-.nav-items{padding:8px;flex:1;overflow-y:auto}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;transition:.15s;margin-bottom:2px;position:relative}
-.nav-item:hover{background:rgba(99,102,241,.12);color:var(--text)}
-.nav-item.active{background:rgba(99,102,241,.18);color:var(--brand);font-weight:600}
-.nav-item.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--brand);border-radius:0 3px 3px 0}
-.nav-icon{font-size:15px;width:20px;text-align:center}
-.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;padding:2px 6px;border-radius:20px;font-weight:700}
-.sidebar-user{padding:14px 16px;border-top:1px solid var(--border)}
-.user-info{display:flex;align-items:center;gap:10px}
-.avatar{width:36px;height:36px;background:var(--grad);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;color:#fff}
-.user-name{font-size:13px;font-weight:700;color:var(--white)}
-.user-plan{font-size:10px;color:var(--muted)}
-
-/* ── MAIN ── */
+:root{--brand:#7c3aed;--g:#10b981;--r:#ef4444;--am:#f59e0b;
+--bg:#07000f;--rail:#0a0014;--card:#0d0019;--card2:#130020;--bdr:rgba(255,255,255,.06);--bdr2:rgba(255,255,255,.1);
+--tx:#e2e8f0;--mu:rgba(255,255,255,.32);--w:#fff;--gr:linear-gradient(135deg,#7c3aed,#6d28d9)}
+html,body{height:100%}
+body{background:var(--bg);color:var(--tx);font-family:'Inter',system-ui,sans-serif;display:flex;height:100vh;overflow:hidden}
+.sidebar{width:228px;background:var(--rail);border-right:1px solid var(--bdr);display:flex;flex-direction:column;flex-shrink:0}
+.sb-logo{padding:22px 18px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:9px}
+.sb-mark{width:28px;height:28px;background:var(--gr);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.sb-name{font-size:14px;font-weight:800;color:var(--w);letter-spacing:-.3px}
+.sb-ver{font-size:9px;color:var(--mu);letter-spacing:.1em;text-transform:uppercase}
+.sb-nav{padding:8px;flex:1;overflow-y:auto}
+.sb-sec{padding:14px 10px 4px;font-size:9px;font-weight:700;color:rgba(255,255,255,.15);text-transform:uppercase;letter-spacing:.14em}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:9px;font-size:12px;font-weight:500;color:var(--mu);cursor:pointer;transition:.15s;margin-bottom:1px;position:relative;user-select:none}
+.sb-item:hover{background:rgba(124,58,237,.1);color:rgba(255,255,255,.7)}
+.sb-item.on{background:rgba(124,58,237,.14);color:var(--w);font-weight:600}
+.sb-item.on::before{content:'';position:absolute;left:0;top:25%;bottom:25%;width:2.5px;background:var(--brand);border-radius:0 2px 2px 0}
+.sb-ico{font-size:13px;width:16px;text-align:center;flex-shrink:0}
+.sb-foot{padding:12px 14px;border-top:1px solid var(--bdr)}
+.sb-av{width:30px;height:30px;background:var(--gr);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;flex-shrink:0}
 .main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
-.topbar{background:var(--sidebar);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:5}
-.topbar h1{font-size:19px;font-weight:800;color:var(--white)}
-.topbar-sub{font-size:12px;color:var(--muted);margin-top:1px}
-.topbar-actions{display:flex;gap:10px;align-items:center}
-
-/* ── BUTTONS ── */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:9px;font-weight:600;font-size:13px;cursor:pointer;border:none;transition:.15s;text-decoration:none}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn-primary{background:var(--grad);color:#fff;box-shadow:0 0 20px rgba(99,102,241,.25)}
-.btn-primary:hover{opacity:.88;transform:translateY(-1px)}
-.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
-.btn-outline:hover{border-color:var(--brand);color:var(--brand)}
-.btn-green{background:linear-gradient(135deg,var(--green),#059669);color:#fff}
-.btn-green:hover{opacity:.88}
-.btn-red{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
-.btn-red:hover{background:var(--red);color:#fff}
-.btn-yellow{background:rgba(245,158,11,.15);color:var(--yellow);border:1px solid rgba(245,158,11,.3)}
-.btn-sm{padding:6px 12px;font-size:12px;border-radius:7px}
-.btn-xs{padding:4px 9px;font-size:11px;border-radius:6px}
-.btn-icon{padding:7px;border-radius:8px}
-
-.content{padding:24px 28px;flex:1}
-.page{display:none}.page.active{display:block}
-
-/* ── STATS ── */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:.2s}
-.stat-card:hover{border-color:rgba(99,102,241,.4);transform:translateY(-1px)}
-.stat-card::after{content:'';position:absolute;top:0;right:0;width:60px;height:60px;background:var(--grad);opacity:.05;border-radius:0 14px 0 60px}
-.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.9px;margin-bottom:10px;font-weight:600}
-.stat-value{font-size:24px;font-weight:900;color:var(--white);line-height:1}
-.stat-change{font-size:11px;margin-top:6px;display:flex;align-items:center;gap:4px}
-.stat-icon{position:absolute;top:18px;right:18px;font-size:20px;opacity:.3}
-.green{color:var(--green)}.red{color:var(--red)}.yellow{color:var(--yellow)}.blue{color:var(--blue)}
-
-/* ── SKELETON ── */
-.skeleton{background:linear-gradient(90deg,var(--border) 25%,var(--card2) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.sk-line{height:14px;margin-bottom:8px}
-.sk-title{height:20px;width:60%}
-.sk-val{height:28px;width:40%}
-
-/* ── TABLE ── */
-.table-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:18px}
-.table-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.table-header h3{font-size:14px;font-weight:700;color:var(--white)}
+.topbar{background:rgba(7,0,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:10}
+.tb-l h1{font-size:16px;font-weight:800;color:var(--w);letter-spacing:-.3px}
+.tb-l p{font-size:10px;color:var(--mu)}
+.tb-r{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-weight:600;font-size:11px;cursor:pointer;border:none;transition:.15s;font-family:inherit;white-space:nowrap}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-p{background:var(--gr);color:#fff;box-shadow:0 0 16px rgba(124,58,237,.2)}
+.btn-p:hover:not(:disabled){opacity:.88;transform:translateY(-1px)}
+.btn-g{background:rgba(255,255,255,.05);color:rgba(255,255,255,.55);border:1px solid var(--bdr)}
+.btn-g:hover{background:rgba(255,255,255,.08);color:#fff}
+.btn-o{background:transparent;border:1px solid var(--bdr2);color:var(--tx)}
+.btn-o:hover{border-color:rgba(124,58,237,.5);color:#fff}
+.btn-gr{background:rgba(16,185,129,.1);color:#34d399;border:1px solid rgba(16,185,129,.18)}
+.btn-gr:hover{background:var(--g);color:#fff;border-color:var(--g)}
+.btn-rd{background:rgba(239,68,68,.07);color:#f87171;border:1px solid rgba(239,68,68,.14)}
+.btn-rd:hover{background:var(--r);color:#fff;border-color:var(--r)}
+.btn-am{background:rgba(245,158,11,.07);color:var(--am);border:1px solid rgba(245,158,11,.18)}
+.btn-am:hover{background:var(--am);color:#000}
+.btn-wa{background:rgba(37,211,102,.07);color:#25d366;border:1px solid rgba(37,211,102,.18)}
+.btn-wa:hover{background:#25d366;color:#fff}
+.btn-sm{padding:5px 11px;font-size:11px;border-radius:7px}
+.btn-xs{padding:3px 8px;font-size:10px;border-radius:6px}
+.content{padding:20px 28px;flex:1}
+.page{display:none}.page.on{display:block}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.sc{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px;position:relative;overflow:hidden;transition:.2s}
+.sc:hover{border-color:rgba(124,58,237,.28)}
+.sc-lbl{font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+.sc-val{font-size:20px;font-weight:900;color:var(--w);letter-spacing:-.4px;line-height:1}
+.sc-sub{font-size:9px;margin-top:5px}
+.sc-ico{position:absolute;right:14px;top:14px;font-size:18px;opacity:.1}
+.cg{color:var(--g)}.cr{color:var(--r)}.cam{color:var(--am)}.cb{color:#a78bfa}
+.sk{background:linear-gradient(90deg,var(--bdr) 25%,var(--card2) 50%,var(--bdr) 75%);background-size:200% 100%;animation:skim 1.4s infinite;border-radius:5px}
+@keyframes skim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.sk-h{height:11px;margin-bottom:7px}
+.tc{background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.tc-h{padding:13px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tc-h h3{font-size:12px;font-weight:700;color:var(--w);letter-spacing:-.2px}
 table{width:100%;border-collapse:collapse}
-th{padding:11px 18px;text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--border);white-space:nowrap}
-td{padding:13px 18px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04);transition:.1s}
+th{padding:8px 14px;text-align:left;font-size:9px;font-weight:700;color:rgba(255,255,255,.18);text-transform:uppercase;letter-spacing:.1em;background:rgba(0,0,0,.2);border-bottom:1px solid var(--bdr);white-space:nowrap}
+td{padding:11px 14px;font-size:11px;border-bottom:1px solid rgba(255,255,255,.025)}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(99,102,241,.04)}
-.td-actions{display:flex;gap:6px;flex-wrap:nowrap}
-
-/* ── BADGES ── */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700}
-.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
-.badge-draft{background:rgba(100,116,139,.15);color:#94a3b8}
-.badge-sent{background:rgba(99,102,241,.15);color:#818cf8}
-.badge-viewed{background:rgba(245,158,11,.15);color:#fbbf24}
-.badge-paid{background:rgba(16,185,129,.15);color:#34d399}
-.badge-overdue{background:rgba(239,68,68,.15);color:#f87171}
-.badge-accepted{background:rgba(16,185,129,.15);color:#34d399}
-.badge-declined{background:rgba(239,68,68,.15);color:#f87171}
-.badge-queued{background:rgba(100,116,139,.15);color:#94a3b8}
-.badge-failed{background:rgba(239,68,68,.15);color:#f87171}
-.badge-cancelled{background:rgba(100,116,139,.15);color:#94a3b8}
-.badge-free{background:rgba(99,102,241,.1);color:var(--brand)}
-.badge-solo,.badge-pro{background:rgba(245,158,11,.15);color:#fbbf24}
-.badge-agency,.badge-enterprise{background:rgba(16,185,129,.15);color:#34d399}
-
-/* ── MODAL ── */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);z-index:1000;align-items:center;justify-content:center;padding:20px}
+tr:hover td{background:rgba(124,58,237,.035)}
+.tda{display:flex;gap:4px;align-items:center;flex-wrap:nowrap}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:50px;font-size:9px;font-weight:700;white-space:nowrap}
+.badge::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;flex-shrink:0}
+.b-draft{background:rgba(100,116,139,.1);color:#94a3b8}
+.b-sent{background:rgba(124,58,237,.1);color:#a78bfa}
+.b-viewed{background:rgba(245,158,11,.08);color:#fbbf24}
+.b-paid{background:rgba(16,185,129,.08);color:#34d399}
+.b-overdue{background:rgba(239,68,68,.08);color:#f87171}
+.b-accepted{background:rgba(16,185,129,.08);color:#34d399}
+.b-active{background:rgba(16,185,129,.08);color:#34d399}
+.b-paused{background:rgba(245,158,11,.08);color:#fbbf24}
+.b-ended{background:rgba(100,116,139,.1);color:#94a3b8}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center}
+.empty-ico{font-size:32px;margin-bottom:10px;opacity:.35}
+.empty h3{font-size:13px;font-weight:700;color:var(--w);margin-bottom:4px}
+.empty p{font-size:11px;color:var(--mu);max-width:220px;line-height:1.6;margin-bottom:16px}
+.alert{padding:9px 13px;border-radius:8px;font-size:11px;margin-bottom:10px;display:flex;align-items:center;gap:6px;animation:fin .2s}
+@keyframes fin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.as{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.18);color:#34d399}
+.ae{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);color:#f87171}
+.ai{background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.18);color:#a78bfa}
+.aw{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.18);color:var(--am)}
+.ov-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:12px;margin-bottom:14px}
+.chart-box{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:18px}
+.chart-box h3{font-size:12px;font-weight:700;color:var(--w);margin-bottom:2px}
+.chart-box p{font-size:10px;color:var(--mu);margin-bottom:14px}
+.chart-wrap{height:150px;position:relative}
+.ins-box{background:linear-gradient(160deg,rgba(124,58,237,.09),rgba(109,40,217,.04));border:1px solid rgba(124,58,237,.18);border-radius:14px;padding:18px;display:flex;flex-direction:column}
+.ins-box h3{font-size:12px;font-weight:700;color:var(--w);margin-bottom:2px}
+.ins-box .sub{font-size:10px;color:var(--mu);margin-bottom:12px}
+.ins-txt{font-size:11px;color:rgba(255,255,255,.5);line-height:1.8;flex:1;white-space:pre-line}
+.pm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.pm{background:var(--card);border:1px solid var(--bdr);border-radius:13px;padding:16px;text-align:center;transition:.2s}
+.pm:hover{border-color:rgba(124,58,237,.25)}
+.pm-ico{font-size:22px;margin-bottom:6px}
+.pm-name{font-size:11px;font-weight:700;color:var(--w);margin-bottom:2px}
+.pm-desc{font-size:10px;color:var(--mu)}
+.pm-st{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;margin-top:7px;padding:2px 8px;border-radius:50px}
+.pm-on{background:rgba(16,185,129,.08);color:#34d399}
+.pm-off{background:rgba(100,116,139,.08);color:#64748b}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(16px);z-index:1000;align-items:center;justify-content:center;padding:20px}
 .overlay.open{display:flex}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 80px rgba(0,0,0,.5)}
-.modal-lg{max-width:720px}
-.modal h2{font-size:17px;font-weight:800;margin-bottom:18px;color:var(--white)}
-
-/* ── FORMS ── */
-.form-group{margin-bottom:14px}
-.form-group label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px}
-.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:9px;padding:10px 14px;color:var(--text);font-size:13px;outline:none;transition:.15s;font-family:inherit}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
-.form-group textarea{min-height:80px;resize:vertical}
-.form-group select option{background:var(--card)}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
-
-/* ── INVOICE ITEMS ── */
-.item-row{display:grid;grid-template-columns:3fr 1fr 1.5fr auto;gap:8px;align-items:center;margin-bottom:8px}
-.item-row input{background:var(--card2);border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;outline:none;width:100%}
-.item-row input:focus{border-color:var(--brand)}
-.remove-btn{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2);border-radius:7px;padding:8px 10px;cursor:pointer;font-size:13px;transition:.15s}
-.remove-btn:hover{background:var(--red);color:#fff}
-
-/* ── AI RESULT ── */
-.ai-result{background:rgba(99,102,241,.08);border:1.5px solid rgba(99,102,241,.25);border-radius:11px;padding:16px;margin:12px 0;font-size:13px;line-height:1.75;color:var(--text);max-height:200px;overflow-y:auto}
-
-/* ── CHART ── */
-.chart-wrap{position:relative;height:180px;padding:8px 0}
-
-/* ── INSIGHT CARD ── */
-.insight-card{background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.04));border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:20px}
-.insight-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.insight-header span{font-size:13px;font-weight:700;color:var(--white)}
-
-/* ── OVERVIEW GRID ── */
-.overview-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:20px}
-
-/* ── ALERTS ── */
-.alert{padding:12px 16px;border-radius:9px;font-size:13px;margin-bottom:14px;display:flex;align-items:center;gap:8px;animation:slideDown .2s ease}
-@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-.alert-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:var(--green)}
-.alert-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red)}
-.alert-info{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);color:#818cf8}
-.alert-warn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:var(--yellow)}
-
-/* ── EMPTY STATE ── */
-.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 24px;text-align:center}
-.empty-icon{font-size:48px;margin-bottom:16px;opacity:.6}
-.empty h3{font-size:15px;font-weight:700;color:var(--white);margin-bottom:6px}
-.empty p{font-size:13px;color:var(--muted);max-width:280px;line-height:1.6;margin-bottom:20px}
-
-/* ── DIVIDER ── */
-.divider{height:1px;background:var(--border);margin:20px 0}
-
-/* ── EMAIL STATUS ── */
-.email-trail{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-top:12px}
-.email-trail h4{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
-.email-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
-.email-item:last-child{border-bottom:none}
-.email-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-
-/* ── BANK CARDS ── */
-.bank-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:16px}
-.bank-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative}
-.bank-card.primary{border-color:rgba(99,102,241,.4)}
-.bank-card-flag{font-size:20px;margin-bottom:8px}
-.bank-card-currency{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--brand);margin-bottom:4px}
-.bank-card-name{font-size:13px;font-weight:700;color:var(--white)}
-.bank-card-num{font-size:12px;color:var(--muted);margin-top:2px}
-.bank-card-badge{position:absolute;top:12px;right:12px}
-
-/* ── RESPONSIVE ── */
-@media(max-width:900px){
-  .sidebar{position:fixed;left:-244px;height:100vh;transition:.25s;z-index:100}
-  .sidebar.open{left:0}
-  .stats-grid{grid-template-columns:1fr 1fr}
-  .overview-grid{grid-template-columns:1fr}
-  .form-row{grid-template-columns:1fr}
-  .item-row{grid-template-columns:1fr 1fr;row-gap:6px}
+.modal{background:#0c0018;border:1px solid rgba(124,58,237,.18);border-radius:18px;padding:26px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.modal-lg{max-width:680px}
+.modal h2{font-size:15px;font-weight:800;color:var(--w);margin-bottom:16px;letter-spacing:-.3px}
+.fg{margin-bottom:11px}
+.fg label{display:block;font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.fg input,.fg select,.fg textarea{width:100%;background:rgba(255,255,255,.04);border:1.5px solid var(--bdr2);border-radius:8px;padding:8px 12px;color:var(--w);font-size:12px;outline:none;transition:.15s;font-family:inherit}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:rgba(124,58,237,.5);background:rgba(124,58,237,.04)}
+.fg textarea{min-height:72px;resize:vertical}
+.fg select option{background:#110018}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.fac{display:flex;gap:7px;justify-content:flex-end;margin-top:16px}
+.ir{display:grid;grid-template-columns:3fr 1fr 1.5fr auto;gap:6px;align-items:center;margin-bottom:6px}
+.ir input{background:rgba(255,255,255,.04);border:1.5px solid var(--bdr2);border-radius:7px;padding:7px 10px;color:var(--w);font-size:11px;outline:none;width:100%;transition:.15s;font-family:inherit}
+.ir input:focus{border-color:rgba(124,58,237,.5)}
+.rb{background:rgba(239,68,68,.07);color:#f87171;border:1px solid rgba(239,68,68,.13);border-radius:7px;padding:7px 9px;cursor:pointer;font-size:11px;transition:.15s}
+.rb:hover{background:var(--r);color:#fff}
+.ai-box{background:rgba(124,58,237,.05);border:1px solid rgba(124,58,237,.13);border-radius:9px;padding:13px;margin:9px 0;font-size:11px;line-height:1.8;color:rgba(255,255,255,.6);max-height:170px;overflow-y:auto;white-space:pre-wrap}
+.tot-row{background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.13);border-radius:9px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;margin:10px 0}
+.stab-bar{display:flex;gap:3px;background:var(--card);border:1px solid var(--bdr);border-radius:9px;padding:3px;width:fit-content;margin-bottom:16px;flex-wrap:wrap}
+.stab{padding:6px 14px;font-size:11px;font-weight:600;color:var(--mu);cursor:pointer;border-radius:7px;transition:.15s;background:none;border:none;font-family:inherit}
+.stab.on{background:rgba(124,58,237,.18);color:#a78bfa}
+.bank-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:9px;margin-bottom:12px}
+.bcard{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:13px;transition:.2s}
+.bcard.pri{border-color:rgba(124,58,237,.38)}
+.bc-cur{font-size:9px;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.bc-bk{font-size:12px;font-weight:700;color:var(--w)}
+.bc-nm{font-size:10px;color:var(--mu);font-family:monospace;margin-top:2px}
+.plr{display:flex;gap:5px;align-items:center;margin-bottom:6px}
+.plr input{flex:1;background:rgba(255,255,255,.04);border:1.5px solid var(--bdr2);border-radius:7px;padding:7px 11px;color:var(--w);font-size:11px;outline:none;font-family:inherit;transition:.15s}
+.plr input:focus{border-color:rgba(124,58,237,.5)}
+.env-row{background:var(--card2);border-radius:8px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.env-row code{font-size:11px;color:#a78bfa;font-family:monospace}
+.env-row p{font-size:10px;color:var(--mu);margin-top:2px}
+@media(max-width:860px){
+  .sidebar{display:none}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .ov-grid{grid-template-columns:1fr}
+  .pm-grid{grid-template-columns:1fr 1fr}
+  .fr{grid-template-columns:1fr}
+  .ir{grid-template-columns:1fr 1fr;row-gap:5px}
 }
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<div class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo">⚡ PropelPay</div>
-    <div class="logo-sub">DASHBOARD</div>
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-mark">⚡</div>
+    <div><div class="sb-name">PropelPay</div><div class="sb-ver">Dashboard</div></div>
   </div>
-  <div class="nav-items">
-    <div class="nav-section">Main</div>
-    <div class="nav-item active" onclick="showPage('overview')"><span class="nav-icon">📊</span>Overview</div>
-    <div class="nav-item" onclick="showPage('proposals')"><span class="nav-icon">📄</span>Proposals</div>
-    <div class="nav-item" onclick="showPage('invoices')"><span class="nav-icon">🧾</span>Invoices</div>
-    <div class="nav-item" onclick="showPage('clients')"><span class="nav-icon">👥</span>Clients</div>
-    <div class="nav-section">Account</div>
-    <div class="nav-item" onclick="showPage('settings')"><span class="nav-icon">⚙️</span>Settings</div>
+  <div class="sb-nav">
+    <div class="sb-sec">Main</div>
+    <div class="sb-item on" onclick="go('overview')"><span class="sb-ico">📊</span>Overview</div>
+    <div class="sb-item" onclick="go('proposals')"><span class="sb-ico">📄</span>Proposals</div>
+    <div class="sb-item" onclick="go('invoices')"><span class="sb-ico">🧾</span>Invoices</div>
+    <div class="sb-item" onclick="go('recurring')"><span class="sb-ico">🔄</span>Recurring</div>
+    <div class="sb-item" onclick="go('clients')"><span class="sb-ico">👥</span>Clients</div>
+    <div class="sb-sec">System</div>
+    <div class="sb-item" onclick="go('payments')"><span class="sb-ico">💳</span>Payments</div>
+    <div class="sb-item" onclick="go('settings')"><span class="sb-ico">⚙️</span>Settings</div>
   </div>
-  <div class="sidebar-user">
-    <div class="user-info">
-      <div class="avatar" id="sideAvatar">U</div>
-      <div><div class="user-name" id="sideUsername">Loading…</div>
-           <div class="user-plan" id="sidePlan">Free Plan</div></div>
+  <div class="sb-foot">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div class="sb-av" id="sbAv">U</div>
+      <div><div style="font-size:11px;font-weight:700;color:var(--w)" id="sbNm">Loading…</div><div style="font-size:9px;color:var(--mu)" id="sbPl">Free Plan</div></div>
     </div>
   </div>
 </div>
 
-<!-- MAIN -->
 <div class="main">
 <div class="topbar">
-  <div>
-    <h1 id="pageTitle">Overview</h1>
-    <div class="topbar-sub" id="pageDate"></div>
-  </div>
-  <div class="topbar-actions">
-    <button class="btn btn-primary" id="topbarAction" onclick="topbarActionFn()">+ New Invoice</button>
-    <button class="btn btn-outline btn-sm" onclick="logout()">Log Out</button>
+  <div class="tb-l"><h1 id="pgTitle">Overview</h1><p id="pgDate"></p></div>
+  <div class="tb-r">
+    <button class="btn btn-p" id="topBtn" onclick="topAct()">+ New Invoice</button>
+    <button class="btn btn-g btn-sm" onclick="logout()">Sign Out</button>
   </div>
 </div>
 <div class="content">
 
-<!-- ───────────── OVERVIEW ───────────── -->
-<div class="page active" id="page-overview">
-  <div id="alertBox"></div>
-  <div class="stats-grid" id="statsGrid">
-    <!-- Skeleton loaders -->
-    <div class="stat-card"><div class="stat-label skeleton sk-line" style="width:60%"></div><div class="stat-value skeleton sk-val" style="margin-top:10px"></div></div>
-    <div class="stat-card"><div class="stat-label skeleton sk-line" style="width:60%"></div><div class="stat-value skeleton sk-val" style="margin-top:10px"></div></div>
-    <div class="stat-card"><div class="stat-label skeleton sk-line" style="width:60%"></div><div class="stat-value skeleton sk-val" style="margin-top:10px"></div></div>
-    <div class="stat-card"><div class="stat-label skeleton sk-line" style="width:60%"></div><div class="stat-value skeleton sk-val" style="margin-top:10px"></div></div>
+<!-- OVERVIEW -->
+<div class="page on" id="page-overview">
+  <div id="ovAl"></div>
+  <div class="stats-row" id="statsRow">
+    <div class="sc"><div class="sc-lbl sk sk-h" style="width:55%"></div><div class="sc-val sk" style="height:22px;margin-top:9px"></div></div>
+    <div class="sc"><div class="sc-lbl sk sk-h" style="width:55%"></div><div class="sc-val sk" style="height:22px;margin-top:9px"></div></div>
+    <div class="sc"><div class="sc-lbl sk sk-h" style="width:55%"></div><div class="sc-val sk" style="height:22px;margin-top:9px"></div></div>
+    <div class="sc"><div class="sc-lbl sk sk-h" style="width:55%"></div><div class="sc-val sk" style="height:22px;margin-top:9px"></div></div>
   </div>
-  <div class="overview-grid">
-    <div class="table-card">
-      <div class="table-header"><h3>📈 Monthly Revenue</h3><span id="chartCurrency" style="font-size:12px;color:var(--muted)"></span></div>
-      <div style="padding:16px 20px"><div class="chart-wrap"><canvas id="revenueChart"></canvas></div></div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-header">🤖 <span>AI Business Insights</span>
-        <button class="btn btn-sm btn-outline" style="margin-left:auto;font-size:11px" onclick="loadInsights(true)">Refresh</button>
-      </div>
-      <div id="aiInsights" style="font-size:13px;color:var(--muted);line-height:1.75">
-        <div class="skeleton sk-line"></div>
-        <div class="skeleton sk-line" style="width:85%"></div>
-        <div class="skeleton sk-line" style="width:70%"></div>
-      </div>
+  <div class="ov-grid">
+    <div class="chart-box"><h3>Revenue</h3><p id="chartCur">Monthly</p><div class="chart-wrap"><canvas id="revChart"></canvas></div></div>
+    <div class="ins-box"><h3>🤖 AI Insights</h3><div class="sub">Based on your data</div>
+      <div class="ins-txt" id="insEl"><div class="sk sk-h"></div><div class="sk sk-h" style="width:78%"></div><div class="sk sk-h" style="width:60%"></div></div>
+      <button class="btn btn-g btn-sm" onclick="loadIns(true)" style="margin-top:10px;align-self:flex-start;font-size:10px">↻ Refresh</button>
     </div>
   </div>
-  <div class="table-card">
-    <div class="table-header"><h3>⚡ Recent Activity</h3></div>
+  <div class="tc"><div class="tc-h"><h3>Recent Activity</h3></div>
     <table><thead><tr><th>Type</th><th>Description</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
-    <tbody id="recentTable"><tr><td colspan="5"><div style="padding:16px"><div class="skeleton sk-line"></div><div class="skeleton sk-line" style="width:80%"></div><div class="skeleton sk-line" style="width:60%"></div></div></td></tr></tbody></table>
+    <tbody id="recBody"><tr><td colspan="5"><div class="sk sk-h" style="margin:12px 14px"></div></td></tr></tbody></table>
   </div>
 </div>
 
-<!-- ───────────── PROPOSALS ───────────── -->
+<!-- PROPOSALS -->
 <div class="page" id="page-proposals">
-  <div id="propAlert"></div>
-  <div class="table-card">
-    <div class="table-header">
-      <h3>📄 Proposals</h3>
-      <button class="btn btn-primary btn-sm" onclick="openNewProposal()">+ New Proposal</button>
-    </div>
-    <table><thead><tr><th>Title</th><th>Client</th><th>Amount</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
-    <tbody id="proposalTable"><tr><td colspan="6"><div class="skeleton sk-line" style="margin:16px"></div></td></tr></tbody></table>
+  <div id="prAl"></div><div id="cvBanners"></div>
+  <div class="tc"><div class="tc-h"><h3>Proposals</h3><button class="btn btn-p btn-sm" onclick="openNewProp()">+ New</button></div>
+    <table><thead><tr><th>Title</th><th>Client</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody id="prBody"><tr><td colspan="6"><div class="sk sk-h" style="margin:12px 14px"></div></td></tr></tbody></table>
   </div>
 </div>
 
-<!-- ───────────── INVOICES ───────────── -->
+<!-- INVOICES -->
 <div class="page" id="page-invoices">
-  <div id="invAlert"></div>
-  <div class="table-card">
-    <div class="table-header">
-      <h3>🧾 Invoices</h3>
-      <div style="display:flex;gap:8px">
-        <select id="invFilter" class="btn btn-outline btn-sm" onchange="loadInvoices()" style="padding:6px 10px;border-radius:7px;background:var(--card2);color:var(--text)">
-          <option value="">All</option>
-          <option value="draft">Draft</option>
-          <option value="sent">Sent</option>
-          <option value="viewed">Viewed</option>
-          <option value="paid">Paid</option>
-          <option value="overdue">Overdue</option>
-        </select>
-        <button class="btn btn-primary btn-sm" onclick="openNewInvoice()">+ New Invoice</button>
-      </div>
+  <div id="inAl"></div>
+  <div class="tc"><div class="tc-h"><h3>Invoices</h3>
+    <div style="display:flex;gap:7px;align-items:center">
+      <select id="inFilt" onchange="loadInvs()" style="background:var(--card2);border:1px solid var(--bdr2);border-radius:6px;padding:5px 9px;color:var(--tx);font-size:10px;outline:none">
+        <option value="">All</option><option value="draft">Draft</option><option value="sent">Sent</option><option value="viewed">Viewed</option><option value="paid">Paid</option>
+      </select>
+      <button class="btn btn-p btn-sm" onclick="openNewInv()">+ New</button>
     </div>
-    <table><thead><tr><th>Invoice #</th><th>Client</th><th>Amount</th><th>Due</th><th>Status</th><th>Email</th><th>Actions</th></tr></thead>
-    <tbody id="invoiceTable"><tr><td colspan="7"><div class="skeleton sk-line" style="margin:16px"></div></td></tr></tbody></table>
+  </div>
+    <table><thead><tr><th>Invoice #</th><th>Client</th><th>Amount</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody id="inBody"><tr><td colspan="6"><div class="sk sk-h" style="margin:12px 14px"></div></td></tr></tbody></table>
   </div>
 </div>
 
-<!-- ───────────── CLIENTS ───────────── -->
+<!-- RECURRING -->
+<div class="page" id="page-recurring">
+  <div id="reAl"></div>
+  <div class="tc"><div class="tc-h"><h3>Recurring Invoices</h3><button class="btn btn-p btn-sm" onclick="openNewRec()">+ New Recurring</button></div>
+    <div id="recList" style="padding:14px"><div class="sk sk-h"></div><div class="sk sk-h" style="width:68%"></div></div>
+  </div>
+</div>
+
+<!-- CLIENTS -->
 <div class="page" id="page-clients">
-  <div id="clientAlert"></div>
-  <div class="table-card">
-    <div class="table-header">
-      <h3>👥 Clients</h3>
-      <button class="btn btn-primary btn-sm" onclick="openNewClient()">+ Add Client</button>
-    </div>
-    <table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Company</th><th>Added</th><th>Actions</th></tr></thead>
-    <tbody id="clientTable"><tr><td colspan="6"><div class="skeleton sk-line" style="margin:16px"></div></td></tr></tbody></table>
+  <div id="clAl"></div>
+  <div class="tc"><div class="tc-h"><h3>Clients</h3><button class="btn btn-p btn-sm" onclick="openNewClient()">+ Add Client</button></div>
+    <table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Company</th><th>Website</th><th>Actions</th></tr></thead>
+    <tbody id="clBody"><tr><td colspan="6"><div class="sk sk-h" style="margin:12px 14px"></div></td></tr></tbody></table>
   </div>
 </div>
 
-<!-- ───────────── SETTINGS ───────────── -->
+<!-- PAYMENTS -->
+<div class="page" id="page-payments">
+  <div id="pmAl"></div>
+  <div style="margin-bottom:18px"><h2 style="font-size:15px;font-weight:800;color:var(--w);letter-spacing:-.3px;margin-bottom:3px">Payment Methods</h2><p style="font-size:11px;color:var(--mu)">Configure how clients pay. All methods work directly on your invoice link.</p></div>
+  <div class="pm-grid">
+    <div class="pm"><div class="pm-ico">💳</div><div class="pm-name">Paystack</div><div class="pm-desc">Card, Bank Transfer, USSD, Mobile Money</div><div id="psS" class="pm-st pm-off">Configure</div></div>
+    <div class="pm"><div class="pm-ico">💬</div><div class="pm-name">WhatsApp Business</div><div class="pm-desc">AI payment reminders via WhatsApp</div><div id="waS" class="pm-st pm-off">Configure</div></div>
+    <div class="pm"><div class="pm-ico">💌</div><div class="pm-name">Email (Resend)</div><div class="pm-desc">Transactional email — 3,000/month free</div><div id="rsS" class="pm-st pm-off">Configure</div></div>
+  </div>
+  <div class="tc" style="padding:18px">
+    <h3 style="font-size:12px;font-weight:700;color:var(--w);margin-bottom:5px">Render Environment Variables</h3>
+    <p style="font-size:11px;color:var(--mu);margin-bottom:14px">Add these in your Render dashboard → Service → Environment:</p>
+    <div class="env-row"><div><code>PAYSTACK_SECRET_KEY</code><p>Paystack dashboard → Settings → API Keys</p></div><span style="font-size:10px;color:var(--mu)">Required</span></div>
+    <div class="env-row"><div><code>PAYSTACK_PUBLIC_KEY</code><p>Paystack dashboard → same page</p></div><span style="font-size:10px;color:var(--mu)">Required</span></div>
+    <div class="env-row"><div><code>GROQ_API_KEY</code><p>Free at console.groq.com — powers AI</p></div><span style="font-size:10px;color:var(--mu)">AI features</span></div>
+    <div class="env-row"><div><code>RESEND_API_KEY</code><p>Free at resend.com — 3,000 emails/month</p></div><span style="font-size:10px;color:var(--mu)">Email</span></div>
+    <div class="env-row"><div><code>WHATSAPP_PHONE_ID</code> + <code>WHATSAPP_ACCESS_TOKEN</code><p>Meta Business → WhatsApp → API Setup</p></div><span style="font-size:10px;color:var(--mu)">WhatsApp</span></div>
+  </div>
+  <div class="tc" style="padding:18px;margin-top:12px">
+    <h3 style="font-size:12px;font-weight:700;color:var(--w);margin-bottom:14px">Payment Flow</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px">
+      <div style="background:var(--card2);border-radius:9px;padding:13px;text-align:center"><div style="font-size:18px;margin-bottom:5px">🧾</div><div style="font-size:11px;font-weight:700;color:var(--w)">Invoice Created</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Paystack link embedded</div></div>
+      <div style="background:var(--card2);border-radius:9px;padding:13px;text-align:center"><div style="font-size:18px;margin-bottom:5px">📧</div><div style="font-size:11px;font-weight:700;color:var(--w)">Email Sent</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Beautiful HTML via Resend</div></div>
+      <div style="background:var(--card2);border-radius:9px;padding:13px;text-align:center"><div style="font-size:18px;margin-bottom:5px">💳</div><div style="font-size:11px;font-weight:700;color:var(--w)">Client Pays</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Card, transfer, USSD</div></div>
+      <div style="background:var(--card2);border-radius:9px;padding:13px;text-align:center"><div style="font-size:18px;margin-bottom:5px">⚡</div><div style="font-size:11px;font-weight:700;color:var(--w)">Auto Confirmed</div><div style="font-size:10px;color:var(--mu);margin-top:2px">Webhook marks Paid instantly</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
 <div class="page" id="page-settings">
-  <div id="settingsAlert"></div>
-  <!-- Settings tabs -->
-  <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--card);border:1px solid var(--border);border-radius:11px;padding:4px;width:fit-content">
-    <button class="btn btn-primary btn-sm" id="stab-profile" onclick="switchSettingsTab('profile')">Profile</button>
-    <button class="btn btn-outline btn-sm" id="stab-banks" onclick="switchSettingsTab('banks')">Bank Accounts</button>
-    <button class="btn btn-outline btn-sm" id="stab-plan" onclick="switchSettingsTab('plan')">Plan & Billing</button>
+  <div id="seAl"></div>
+  <div class="stab-bar">
+    <button class="stab on" id="st-profile" onclick="stab('profile')">Profile</button>
+    <button class="stab" id="st-banks" onclick="stab('banks')">Banks</button>
+    <button class="stab" id="st-plan" onclick="stab('plan')">Plan</button>
   </div>
-
-  <!-- Profile tab -->
-  <div id="settingsTab-profile">
-    <div class="table-card" style="padding:24px">
-      <h3 style="margin-bottom:18px;font-size:15px;font-weight:700;color:var(--white)">Business Profile</h3>
-      <div class="form-row">
-        <div class="form-group"><label>Full Name</label><input id="pName" placeholder="Your name"></div>
-        <div class="form-group"><label>Business Name</label><input id="pBusiness" placeholder="Company name"></div>
+  <div id="sc-profile">
+    <div class="tc" style="padding:20px">
+      <h3 style="font-size:12px;font-weight:700;color:var(--w);margin-bottom:14px">Business Profile</h3>
+      <div class="fr"><div class="fg"><label>Full Name</label><input id="pNm"></div><div class="fg"><label>Business Name</label><input id="pBiz"></div></div>
+      <div class="fr"><div class="fg"><label>Phone (for WhatsApp)</label><input id="pPh" placeholder="+2348..."></div>
+        <div class="fg"><label>Default Currency</label><select id="pCur"><option value="NGN">NGN</option><option value="USD">USD</option><option value="GBP">GBP</option><option value="EUR">EUR</option><option value="GHS">GHS</option><option value="KES">KES</option></select></div>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label>Phone</label><input id="pPhone" placeholder="+234..."></div>
-        <div class="form-group"><label>Country</label>
-          <select id="pCountry">
-            <option>Nigeria</option><option>Ghana</option><option>Kenya</option><option>South Africa</option>
-            <option>United States</option><option>United Kingdom</option><option>Canada</option><option>Other</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Default Currency</label>
-          <select id="pCurrency">
-            <option value="NGN">🇳🇬 NGN — Nigerian Naira</option>
-            <option value="GHS">🇬🇭 GHS — Ghanaian Cedi</option>
-            <option value="KES">🇰🇪 KES — Kenyan Shilling</option>
-            <option value="ZAR">🇿🇦 ZAR — South African Rand</option>
-            <option value="USD">🇺🇸 USD — US Dollar</option>
-            <option value="GBP">🇬🇧 GBP — British Pound</option>
-            <option value="EUR">🇪🇺 EUR — Euro</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Email</label><input id="pEmail" disabled style="opacity:.5"></div>
-      </div>
-      <div style="display:flex;gap:10px;margin-top:8px">
-        <button class="btn btn-primary" onclick="saveProfile()">Save Profile</button>
-      </div>
+      <div class="fg"><label>Email (read-only)</label><input id="pEm" disabled style="opacity:.4"></div>
+      <button class="btn btn-p" onclick="savePro()">Save Profile</button>
     </div>
   </div>
-
-  <!-- Bank Accounts tab -->
-  <div id="settingsTab-banks" style="display:none">
-    <div class="table-card" style="padding:24px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-        <div>
-          <h3 style="font-size:15px;font-weight:700;color:var(--white)">Bank Accounts</h3>
-          <p style="font-size:12px;color:var(--muted);margin-top:3px">Add accounts for each currency you invoice in. Clients see the right bank on their invoice.</p>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="openAddBank()">+ Add Account</button>
+  <div id="sc-banks" style="display:none">
+    <div class="tc" style="padding:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div><h3 style="font-size:12px;font-weight:700;color:var(--w)">Bank Accounts</h3><p style="font-size:10px;color:var(--mu);margin-top:2px">Clients see the right bank per currency.</p></div>
+        <button class="btn btn-p btn-sm" onclick="openAddBank()">+ Add</button>
       </div>
-      <div id="bankGrid" class="bank-grid">
-        <div class="skeleton" style="height:100px;border-radius:12px"></div>
-        <div class="skeleton" style="height:100px;border-radius:12px"></div>
-      </div>
+      <div id="bankGrid" class="bank-grid"><div class="sk" style="height:76px;border-radius:11px"></div></div>
     </div>
   </div>
-
-  <!-- Plan tab -->
-  <div id="settingsTab-plan" style="display:none">
-    <div class="table-card" style="padding:24px">
-      <h3 style="margin-bottom:4px;font-size:15px;font-weight:700;color:var(--white)">Current Plan</h3>
-      <p id="planDesc" style="font-size:13px;color:var(--muted);margin-bottom:20px">Loading…</p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
-        <div class="stat-card" style="cursor:pointer;border-color:rgba(99,102,241,.3)" onclick="upgradePlan('solo')">
-          <div class="stat-label">Solo</div>
-          <div class="stat-value" style="font-size:18px">₦9,900<span style="font-size:12px;color:var(--muted)">/mo</span></div>
-          <div style="font-size:11px;color:var(--muted);margin-top:6px">50 invoices · 50 proposals · AI drafts</div>
-        </div>
-        <div class="stat-card" style="cursor:pointer;border-color:rgba(16,185,129,.3)" onclick="upgradePlan('agency')">
-          <div class="stat-label">Agency</div>
-          <div class="stat-value" style="font-size:18px">₦24,900<span style="font-size:12px;color:var(--muted)">/mo</span></div>
-          <div style="font-size:11px;color:var(--muted);margin-top:6px">Unlimited everything + team access</div>
-        </div>
+  <div id="sc-plan" style="display:none">
+    <div class="tc" style="padding:20px">
+      <h3 style="font-size:12px;font-weight:700;color:var(--w);margin-bottom:4px">Current Plan</h3>
+      <p id="planDesc" style="font-size:11px;color:var(--mu);margin-bottom:16px">Loading…</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+        <div class="sc" onclick="upgPlan('solo')" style="cursor:pointer;border-color:rgba(124,58,237,.28)"><div class="sc-lbl">Solo</div><div class="sc-val" style="font-size:15px">₦9,900<span style="font-size:10px;color:var(--mu)">/mo</span></div><div class="sc-sub" style="color:var(--mu)">50 invoices · AI · Recurring</div></div>
+        <div class="sc" onclick="upgPlan('agency')" style="cursor:pointer;border-color:rgba(16,185,129,.22)"><div class="sc-lbl">Agency</div><div class="sc-val" style="font-size:15px">₦24,900<span style="font-size:10px;color:var(--mu)">/mo</span></div><div class="sc-sub" style="color:var(--mu)">Unlimited everything</div></div>
       </div>
     </div>
   </div>
 </div>
 
-</div><!-- /content -->
-</div><!-- /main -->
+</div></div>
 
-<!-- ═══════════════ MODALS ═══════════════ -->
+<!-- MODALS -->
 
-<!-- New Proposal -->
-<div class="overlay" id="proposalOverlay">
+<!-- Proposal -->
+<div class="overlay" id="propMod">
   <div class="modal modal-lg">
     <h2>📄 New Proposal</h2>
-    <div class="form-row">
-      <div class="form-group"><label>Client</label>
-        <select id="pClient"><option value="">— Select client —</option></select>
-      </div>
-      <div class="form-group"><label>Service Type</label>
-        <input id="pService" placeholder="e.g. Web Development, Brand Design…">
-      </div>
+    <div class="fr">
+      <div class="fg"><label>Client</label><select id="prCl"><option value="">— Select —</option></select></div>
+      <div class="fg"><label>Service Type</label><input id="prSv" placeholder="e.g. Website Design, Brand Identity"></div>
     </div>
-    <div class="form-group"><label>Scope of Work</label>
-      <textarea id="pScope" rows="3" placeholder="Describe what you'll deliver…"></textarea>
+    <div class="fg"><label>Scope of Work</label><textarea id="prSc" rows="3" placeholder="Describe exactly what you will deliver…"></textarea></div>
+    <div class="fr">
+      <div class="fg"><label>Budget (optional)</label><input id="prBu" placeholder="e.g. ₦500,000"></div>
+      <div class="fg"><label>Tone</label><select id="prTo"><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="bold">Bold & Confident</option></select></div>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label>Budget (optional)</label>
-        <input id="pBudget" placeholder="e.g. ₦500,000">
-      </div>
-      <div class="form-group"><label>Tone</label>
-        <select id="pTone"><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="bold">Bold & Confident</option></select>
-      </div>
+    <div class="fg">
+      <label>Portfolio / Reference Links <span style="font-size:9px;color:var(--mu);text-transform:none;letter-spacing:0">(show clients your past work — optional)</span></label>
+      <div id="plRows"></div>
+      <button class="btn btn-g btn-sm" onclick="addPL()" style="margin-top:4px">+ Add Link</button>
     </div>
-    <button class="btn btn-primary" onclick="generateAIProposal()" id="aiGenBtn">✨ Generate with AI</button>
-    <div id="aiProposalResult" class="ai-result" style="display:none"></div>
-    <div class="form-actions">
-      <button class="btn btn-outline" onclick="closeModal('proposalOverlay')">Cancel</button>
-      <button class="btn btn-green" onclick="saveAIProposal()" id="savePropBtn" disabled>Save Proposal</button>
+    <button class="btn btn-p" onclick="genProp()" id="aiBtn">✨ Generate with AI</button>
+    <div id="aiRes" class="ai-box" style="display:none"></div>
+    <div class="fac">
+      <button class="btn btn-g" onclick="closeM('propMod')">Cancel</button>
+      <button class="btn btn-p" onclick="saveProp()" id="svPrBtn" disabled>Save Proposal</button>
     </div>
   </div>
 </div>
 
-<!-- New Invoice -->
-<div class="overlay" id="invoiceOverlay">
+<!-- Invoice -->
+<div class="overlay" id="invMod">
   <div class="modal modal-lg">
     <h2>🧾 New Invoice</h2>
-    <div class="form-row">
-      <div class="form-group"><label>Client</label>
-        <select id="iClient"><option value="">— Select client —</option></select>
-      </div>
-      <div class="form-group"><label>Title</label>
-        <input id="iTitle" placeholder="Invoice for Web Development…">
-      </div>
+    <div class="fr">
+      <div class="fg"><label>Client</label><select id="inCl"><option value="">— Select —</option></select></div>
+      <div class="fg"><label>Title</label><input id="inTi" placeholder="Invoice for…"></div>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label>Currency</label>
-        <select id="iCurrency">
-          <option value="NGN">NGN</option><option value="USD">USD</option>
-          <option value="GBP">GBP</option><option value="EUR">EUR</option>
-          <option value="GHS">GHS</option><option value="KES">KES</option>
-        </select>
-      </div>
-      <div class="form-group"><label>Due Date</label>
-        <input type="date" id="iDue">
-      </div>
+    <div class="fr">
+      <div class="fg"><label>Currency</label><select id="inCu"><option value="NGN">NGN</option><option value="USD">USD</option><option value="GBP">GBP</option><option value="EUR">EUR</option><option value="GHS">GHS</option><option value="KES">KES</option></select></div>
+      <div class="fg"><label>Due Date</label><input type="date" id="inDu"></div>
     </div>
-    <div style="margin-bottom:10px">
-      <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:8px">Line Items</label>
-      <div id="itemRows"></div>
-      <button class="btn btn-outline btn-sm" onclick="addItem()" style="margin-top:6px">+ Add Line Item</button>
+    <div><label style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:7px">Line Items</label>
+      <div id="itmRows"></div>
+      <button class="btn btn-g btn-sm" onclick="addItm()" style="margin-top:4px">+ Add Line</button>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label>Tax Rate (%)</label><input type="number" id="iTax" value="0" min="0" max="100" onchange="calcTotal()"></div>
-      <div class="form-group"><label>Discount (flat)</label><input type="number" id="iDiscount" value="0" min="0" onchange="calcTotal()"></div>
+    <div class="fr" style="margin-top:10px">
+      <div class="fg"><label>Tax %</label><input type="number" id="inTx" value="0" min="0" max="100" oninput="calcTot()"></div>
+      <div class="fg"><label>Discount (flat)</label><input type="number" id="inDs" value="0" min="0" oninput="calcTot()"></div>
     </div>
-    <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:13px;color:var(--muted)">Total</span>
-      <span style="font-size:20px;font-weight:800;color:var(--brand)" id="invTotal">—</span>
-    </div>
-    <div class="form-group"><label>Notes</label><textarea id="iNotes" rows="2" placeholder="Payment terms, thanks, etc…"></textarea></div>
-    <div class="form-actions">
-      <button class="btn btn-outline" onclick="closeModal('invoiceOverlay')">Cancel</button>
-      <button class="btn btn-green" onclick="saveInvoice()">Create Invoice</button>
-    </div>
+    <div class="tot-row"><span style="font-size:11px;color:var(--mu)">Total Due</span><span style="font-size:17px;font-weight:900;color:#a78bfa" id="invTot">—</span></div>
+    <div class="fg"><label>Notes</label><textarea id="inNo" rows="2" placeholder="Payment terms, thank you…"></textarea></div>
+    <div class="fac"><button class="btn btn-g" onclick="closeM('invMod')">Cancel</button><button class="btn btn-p" onclick="saveInv()">Create Invoice</button></div>
   </div>
 </div>
 
-<!-- New Client -->
-<div class="overlay" id="clientOverlay">
+<!-- Recurring -->
+<div class="overlay" id="recMod">
+  <div class="modal modal-lg">
+    <h2>🔄 New Recurring Invoice</h2>
+    <div class="fr">
+      <div class="fg"><label>Client</label><select id="reCl"><option value="">— Select —</option></select></div>
+      <div class="fg"><label>Title</label><input id="reTi" placeholder="Monthly Retainer…"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Currency</label><select id="reCu"><option value="NGN">NGN</option><option value="USD">USD</option><option value="GBP">GBP</option><option value="EUR">EUR</option></select></div>
+      <div class="fg"><label>Frequency</label><select id="reFr"><option value="weekly">Weekly</option><option value="monthly" selected>Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option></select></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Start Date</label><input type="date" id="reSt"></div>
+      <div class="fg"><label>End Date (optional)</label><input type="date" id="reEn"></div>
+    </div>
+    <div><label style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:7px">Line Items</label>
+      <div id="ritmRows"></div>
+      <button class="btn btn-g btn-sm" onclick="addRI()" style="margin-top:4px">+ Add Line</button>
+    </div>
+    <div class="tot-row" style="margin-top:10px"><span style="font-size:11px;color:var(--mu)">Per invoice</span><span style="font-size:17px;font-weight:900;color:#a78bfa" id="recTot">—</span></div>
+    <div class="fg" style="display:flex;align-items:center;gap:7px"><input type="checkbox" id="reAs" checked style="width:auto"><label for="reAs" style="font-size:11px;color:var(--tx);text-transform:none;letter-spacing:0">Auto-send invoice to client on each billing date</label></div>
+    <div class="fac"><button class="btn btn-g" onclick="closeM('recMod')">Cancel</button><button class="btn btn-p" onclick="saveRec()">Create Recurring</button></div>
+  </div>
+</div>
+
+<!-- Client -->
+<div class="overlay" id="clMod">
   <div class="modal">
     <h2>👤 Add Client</h2>
-    <div class="form-row">
-      <div class="form-group"><label>Name</label><input id="cName" placeholder="Full name"></div>
-      <div class="form-group"><label>Email</label><input id="cEmail" type="email" placeholder="email@example.com"></div>
+    <div class="fr">
+      <div class="fg"><label>Full Name *</label><input id="clNm" placeholder="Tunde Adeleke"></div>
+      <div class="fg"><label>Email *</label><input id="clEm" type="email" placeholder="email@example.com"></div>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label>Phone</label><input id="cPhone" placeholder="+234…"></div>
-      <div class="form-group"><label>Company</label><input id="cCompany" placeholder="Company Ltd"></div>
+    <div class="fr">
+      <div class="fg"><label>Phone (for WhatsApp reminders)</label><input id="clPh" placeholder="+2348012345678"></div>
+      <div class="fg"><label>Company</label><input id="clCo" placeholder="Company Ltd"></div>
     </div>
-    <div class="form-group"><label>Address</label><textarea id="cAddress" rows="2" placeholder="Business address"></textarea></div>
-    <div class="form-actions">
-      <button class="btn btn-outline" onclick="closeModal('clientOverlay')">Cancel</button>
-      <button class="btn btn-green" onclick="saveClient()">Add Client</button>
-    </div>
+    <div class="fg"><label>Website / Portfolio URL</label><input id="clWb" placeholder="https://example.com"></div>
+    <div class="fg"><label>Address</label><textarea id="clAd" rows="2" placeholder="Business address"></textarea></div>
+    <div class="fac"><button class="btn btn-g" onclick="closeM('clMod')">Cancel</button><button class="btn btn-p" onclick="saveCl()" id="svClBtn">Add Client</button></div>
   </div>
 </div>
 
-<!-- Add Bank Account -->
-<div class="overlay" id="bankOverlay">
+<!-- Bank -->
+<div class="overlay" id="bankMod">
   <div class="modal">
     <h2>🏦 Add Bank Account</h2>
-    <div class="form-group"><label>Currency</label>
-      <select id="bCurrency">
-        <option value="NGN">🇳🇬 NGN — Nigerian Naira</option>
-        <option value="USD">🇺🇸 USD — US Dollar</option>
-        <option value="GBP">🇬🇧 GBP — British Pound</option>
-        <option value="EUR">🇪🇺 EUR — Euro</option>
-        <option value="GHS">🇬🇭 GHS — Ghanaian Cedi</option>
-        <option value="KES">🇰🇪 KES — Kenyan Shilling</option>
-        <option value="ZAR">🇿🇦 ZAR — South African Rand</option>
-      </select>
-    </div>
-    <div class="form-group"><label>Bank Name</label><input id="bName" placeholder="e.g. GTBank, UBA, Zenith…"></div>
-    <div class="form-row">
-      <div class="form-group"><label>Account Number</label><input id="bNum" placeholder="0123456789"></div>
-      <div class="form-group"><label>Account Name</label><input id="bAccName" placeholder="Name on account"></div>
-    </div>
-    <div class="form-row" id="intlBankFields" style="display:none">
-      <div class="form-group"><label>Routing / Sort Code</label><input id="bRouting" placeholder="Routing number"></div>
-      <div class="form-group"><label>SWIFT / BIC</label><input id="bSwift" placeholder="SWIFT code"></div>
-    </div>
-    <div class="form-group" id="ibanField" style="display:none"><label>IBAN</label><input id="bIban" placeholder="IBAN (EUR/GBP)"></div>
-    <div class="form-group" style="display:flex;align-items:center;gap:8px">
-      <input type="checkbox" id="bPrimary" style="width:auto">
-      <label for="bPrimary" style="font-size:13px;color:var(--text);text-transform:none;letter-spacing:0">Set as primary for this currency</label>
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-outline" onclick="closeModal('bankOverlay')">Cancel</button>
-      <button class="btn btn-green" onclick="saveBank()">Add Account</button>
-    </div>
+    <div class="fg"><label>Currency</label><select id="bkCu" onchange="tbf()"><option value="NGN">🇳🇬 NGN</option><option value="USD">🇺🇸 USD</option><option value="GBP">🇬🇧 GBP</option><option value="EUR">🇪🇺 EUR</option><option value="GHS">🇬🇭 GHS</option><option value="KES">🇰🇪 KES</option></select></div>
+    <div class="fg"><label>Bank Name</label><input id="bkNm" placeholder="GTBank, Chase…"></div>
+    <div class="fr"><div class="fg"><label>Account Number</label><input id="bkNu"></div><div class="fg"><label>Account Name</label><input id="bkAn"></div></div>
+    <div id="bkIntl" style="display:none"><div class="fr"><div class="fg"><label>Routing / Sort Code</label><input id="bkRo"></div><div class="fg"><label>SWIFT / BIC</label><input id="bkSw"></div></div></div>
+    <div class="fg" style="display:flex;align-items:center;gap:7px"><input type="checkbox" id="bkPr" style="width:auto"><label for="bkPr" style="font-size:11px;color:var(--tx);text-transform:none;letter-spacing:0">Set as primary for this currency</label></div>
+    <div class="fac"><button class="btn btn-g" onclick="closeM('bankMod')">Cancel</button><button class="btn btn-p" onclick="saveBank()">Add Account</button></div>
   </div>
 </div>
 
-<!-- Email Trail Modal -->
-<div class="overlay" id="emailTrailOverlay">
+<!-- WhatsApp -->
+<div class="overlay" id="waMod">
   <div class="modal">
-    <h2>📬 Email Delivery History</h2>
-    <div id="emailTrailContent" style="min-height:80px"></div>
-    <div class="form-actions"><button class="btn btn-outline" onclick="closeModal('emailTrailOverlay')">Close</button></div>
+    <h2>💬 WhatsApp Reminder</h2>
+    <p style="font-size:11px;color:var(--mu);margin-bottom:10px">Edit the message before sending.</p>
+    <textarea id="waMsg" rows="10" style="width:100%;background:rgba(255,255,255,.04);border:1.5px solid var(--bdr2);border-radius:8px;padding:9px 12px;color:var(--w);font-size:11px;outline:none;resize:vertical;font-family:inherit;line-height:1.7;transition:.15s"></textarea>
+    <p style="font-size:10px;color:var(--mu);margin-top:5px" id="waTo"></p>
+    <div class="fac"><button class="btn btn-g" onclick="closeM('waMod')">Cancel</button><button class="btn btn-wa" onclick="sendWA()">📲 Send via WhatsApp</button></div>
   </div>
 </div>
 
-<!-- ═══════════════ SCRIPTS ═══════════════ -->
+<!-- Email Trail -->
+<div class="overlay" id="emMod">
+  <div class="modal"><h2>📬 Email History</h2><div id="emBody" style="min-height:55px"></div><div class="fac"><button class="btn btn-g" onclick="closeM('emMod')">Close</button></div></div>
+</div>
+
 <script>
-const API = '';
-let _user = null;
-let _clients = [];
-let _revenueChart = null;
-let _lastInsightsTs = 0;
+const A='';
+let _u=null,_cl=[],_rChart=null,_insTs=0,_ic=0,_rc=0,_pc=0,_waId=null,_aiD=null;
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-(async function init(){
-  const token = localStorage.getItem('pp_token');
-  const user  = localStorage.getItem('pp_user');
-  if(!token){ location.href = '/'; return; }
-  if(user){ _user = JSON.parse(user); applyUser(_user); }
-
-  document.getElementById('pageDate').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  try{
-    const r = await authFetch('/auth/me');
-    if(r.ok){ _user = await r.json(); localStorage.setItem('pp_user', JSON.stringify(_user)); applyUser(_user); }
-  }catch(e){}
-  loadOverview();
-  loadClientsDropdown();
+(async function(){
+  if(!localStorage.getItem('pp_token')){location.href='/';return;}
+  const s=localStorage.getItem('pp_user');if(s){_u=JSON.parse(s);apU(_u);}
+  document.getElementById('pgDate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  try{const r=await af('/auth/me');if(r.ok){_u=await r.json();localStorage.setItem('pp_user',JSON.stringify(_u));apU(_u);}}catch(e){}
+  loadOv();loadDrp();
 })();
 
-function applyUser(u){
-  document.getElementById('sideAvatar').textContent = (u.name||'?')[0].toUpperCase();
-  document.getElementById('sideUsername').textContent = u.business_name || u.name || 'User';
-  document.getElementById('sidePlan').textContent = (u.plan||'free').charAt(0).toUpperCase()+(u.plan||'free').slice(1)+' Plan';
+function apU(u){if(!u)return;
+  document.getElementById('sbAv').textContent=(u.name||'?')[0].toUpperCase();
+  document.getElementById('sbNm').textContent=u.business_name||u.name||'User';
+  document.getElementById('sbPl').textContent=(u.plan||'free').charAt(0).toUpperCase()+(u.plan||'free').slice(1)+' Plan';
 }
 
-// ── API helpers ───────────────────────────────────────────────────────────────
-function authFetch(url, opts={}){
-  opts.headers = opts.headers || {};
-  opts.headers['Authorization'] = 'Bearer '+localStorage.getItem('pp_token');
-  if(opts.body && typeof opts.body === 'object' && !(opts.body instanceof FormData)){
-    opts.headers['Content-Type'] = 'application/json';
-    opts.body = JSON.stringify(opts.body);
-  }
-  return fetch(API+url, opts);
+function af(url,o={}){o.headers=o.headers||{};o.headers['Authorization']='Bearer '+localStorage.getItem('pp_token');if(o.body&&typeof o.body==='object'&&!(o.body instanceof FormData)){o.headers['Content-Type']='application/json';o.body=JSON.stringify(o.body);}return fetch(A+url,o);}
+
+function alrt(msg,t='s',el='ovAl'){const b=document.getElementById(el);if(!b)return;const i={s:'✅',e:'❌',i:'ℹ️',w:'⚠️'};b.innerHTML=`<div class="alert a${t}">${i[t]} ${msg}</div>`;setTimeout(()=>b.innerHTML='',5000);}
+
+function fmt(a,c){const s={NGN:'₦',USD:'$',GBP:'£',EUR:'€',GHS:'₵',KES:'KSh',ZAR:'R'};return(s[c]||((c||'')+' '))+Number(a||0).toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function badge(s){const m={draft:'b-draft',sent:'b-sent',viewed:'b-viewed',paid:'b-paid',overdue:'b-overdue',accepted:'b-accepted',active:'b-active',paused:'b-paused',ended:'b-ended'};const c=m[(s||'').toLowerCase()]||'b-draft';return`<span class="badge ${c}">${(s||'').charAt(0).toUpperCase()+(s||'').slice(1)}</span>`;}
+function fd(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'});}catch(e){return d.slice(0,10);}}
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+function logout(){localStorage.clear();location.href='/';}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
+
+function go(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('on'));
+  document.getElementById('page-'+p)?.classList.add('on');
+  document.querySelectorAll('.sb-item').forEach(x=>{if(x.getAttribute('onclick')?.includes("'"+p+"'"))x.classList.add('on');});
+  const T={overview:'Overview',proposals:'Proposals',invoices:'Invoices',recurring:'Recurring',clients:'Clients',payments:'Payments',settings:'Settings'};
+  const B={overview:'+ New Invoice',proposals:'+ New Proposal',invoices:'+ New Invoice',recurring:'+ New Recurring',clients:'+ Add Client',payments:'',settings:''};
+  document.getElementById('pgTitle').textContent=T[p]||p;
+  const btn=document.getElementById('topBtn');if(B[p]){btn.textContent=B[p];btn.style.display='';}else btn.style.display='none';
+  if(p==='overview')loadOv();if(p==='proposals')loadPrs();if(p==='invoices')loadInvs();if(p==='recurring')loadRec();if(p==='clients')loadCls();if(p==='payments')loadPm();if(p==='settings')loadSet();
 }
 
-function showAlert(msg, type='success', el='alertBox'){
-  const box = document.getElementById(el);
-  if(!box) return;
-  const icons = {success:'✅',error:'❌',info:'ℹ️',warn:'⚠️'};
-  box.innerHTML = `<div class="alert alert-${type}">${icons[type]||''} ${msg}</div>`;
-  setTimeout(()=>box.innerHTML='', 4000);
-}
+function topAct(){const p=document.querySelector('.page.on')?.id?.replace('page-','');if(p==='proposals')openNewProp();else if(p==='clients')openNewClient();else if(p==='recurring')openNewRec();else openNewInv();}
 
-function fmt(amount, currency){
-  const c = currency||(_user&&_user.currency)||'NGN';
-  const sym = {NGN:'₦',USD:'$',GBP:'£',EUR:'€',GHS:'₵',KES:'KSh',ZAR:'R'};
-  return (sym[c]||c+' ')+Number(amount||0).toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:0});
-}
-
-function badge(status){
-  const cls = 'badge badge-'+(status||'draft').toLowerCase().replace(/\s+/,'-');
-  return `<span class="${cls}">${(status||'Draft').charAt(0).toUpperCase()+(status||'').slice(1)}</span>`;
-}
-
-function fmtDate(d){ if(!d) return '—'; try{ return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}); }catch(e){ return d; } }
-
-// ── Navigation ────────────────────────────────────────────────────────────────
-function showPage(page){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  event?.target?.closest('.nav-item')?.classList?.add('active');
-  // Fix: highlight correct nav item
-  document.querySelectorAll('.nav-item').forEach(n=>{
-    if(n.getAttribute('onclick')?.includes("'"+page+"'")) n.classList.add('active');
-  });
-  const titles = {overview:'Overview',proposals:'Proposals',invoices:'Invoices',clients:'Clients',settings:'Settings'};
-  const actions = {overview:'+ New Invoice',proposals:'+ New Proposal',invoices:'+ New Invoice',clients:'+ Add Client',settings:''};
-  document.getElementById('pageTitle').textContent = titles[page]||page;
-  const btn = document.getElementById('topbarAction');
-  if(actions[page]){ btn.textContent=actions[page]; btn.style.display=''; }
-  else btn.style.display='none';
-  if(page==='overview') loadOverview();
-  if(page==='proposals') loadProposals();
-  if(page==='invoices') loadInvoices();
-  if(page==='clients') loadClients();
-  if(page==='settings') loadSettings();
-}
-
-function topbarActionFn(){
-  const active = document.querySelector('.page.active')?.id?.replace('page-','');
-  if(active==='proposals') openNewProposal();
-  else if(active==='clients') openNewClient();
-  else openNewInvoice();
-}
-
-// ── Overview ──────────────────────────────────────────────────────────────────
-async function loadOverview(){
-  try{
-    const r = await authFetch('/dashboard/stats');
-    if(!r.ok) return;
-    const d = await r.json();
-    document.getElementById('statsGrid').innerHTML = `
-      <div class="stat-card"><div class="stat-label">Total Invoiced</div>
-        <div class="stat-value" style="color:var(--white)">${fmt(d.total_invoiced,d.currency)}</div>
-        <div class="stat-change" style="color:var(--muted)">${d.invoice_count} invoice${d.invoice_count!==1?'s':''}</div></div>
-      <div class="stat-card"><div class="stat-label">Total Paid</div>
-        <div class="stat-value green">${fmt(d.total_paid,d.currency)}</div>
-        <div class="stat-change green">↑ ${d.collection_rate}% collection rate</div></div>
-      <div class="stat-card"><div class="stat-label">Pending</div>
-        <div class="stat-value yellow">${fmt(d.total_pending,d.currency)}</div>
-        <div class="stat-change" style="color:var(--muted)">${d.proposals_sent} proposals sent</div></div>
-      <div class="stat-card"><div class="stat-label">Overdue</div>
-        <div class="stat-value ${d.total_overdue>0?'red':'green'}">${fmt(d.total_overdue,d.currency)}</div>
-        <div class="stat-change ${d.overdue_count>0?'red':'green'}">${d.overdue_count} overdue invoice${d.overdue_count!==1?'s':''}</div></div>`;
-    drawChart(d.monthly_revenue, d.currency);
-    document.getElementById('chartCurrency').textContent = d.currency;
-    loadRecent();
-    loadInsights();
-  }catch(e){ console.error(e); }
-}
-
-// ── Revenue Chart ─────────────────────────────────────────────────────────────
-function drawChart(months, currency){
-  const canvas = document.getElementById('revenueChart');
-  if(_revenueChart){ _revenueChart.destroy(); _revenueChart=null; }
-  const ctx = canvas.getContext('2d');
-  const labels = months.map(m=>m.month);
-  const data   = months.map(m=>m.revenue);
-  const max    = Math.max(...data, 1);
-  _revenueChart = new Chart(ctx, {
-    type:'bar',
-    data:{
-      labels,
-      datasets:[{
-        label: 'Revenue ('+currency+')',
-        data,
-        backgroundColor: data.map(v=>
-          v===max ? 'rgba(99,102,241,0.9)' : 'rgba(99,102,241,0.35)'),
-        borderColor: data.map(v=>
-          v===max ? '#6366f1' : 'rgba(99,102,241,0.5)'),
-        borderWidth:1, borderRadius:5, borderSkipped:false,
-      }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{
-        backgroundColor:'#1e293b', titleColor:'#e2e8f0', bodyColor:'#94a3b8',
-        callbacks:{label:ctx=>' '+fmt(ctx.parsed.y, currency)}
-      }},
-      scales:{
-        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#64748b',font:{size:11}}},
-        y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#64748b',font:{size:11},
-           callback:v=>fmt(v,currency)},beginAtZero:true}
-      }
-    }
-  });
-}
-
-// ── AI Insights ───────────────────────────────────────────────────────────────
-let _insightsLoading = false;
-async function loadInsights(force=false){
-  if(_insightsLoading) return;
-  const now = Date.now();
-  if(!force && now - _lastInsightsTs < 300000) return; // 5min cache
-  _insightsLoading = true;
-  const box = document.getElementById('aiInsights');
-  box.innerHTML = '<div class="skeleton sk-line"></div><div class="skeleton sk-line" style="width:80%"></div>';
-  try{
-    const r = await authFetch('/dashboard/insights');
-    if(r.ok){
-      const d = await r.json();
-      box.innerHTML = (d.insights||'No insights available.')
-        .replace(/\n/g,'<br>')
-        .replace(/\*\*(.*?)\*\*/g,'<strong style="color:#fff">$1</strong>')
-        .replace(/\*(.*?)\*/g,'<em style="color:#a5b4fc">$1</em>');
-      _lastInsightsTs = Date.now();
-    }
-  }catch(e){ box.textContent='Could not load insights. Check your GROQ_API_KEY.'; }
-  _insightsLoading = false;
-}
-
-// ── Recent Activity ───────────────────────────────────────────────────────────
-async function loadRecent(){
-  try{
-    const r = await authFetch('/dashboard/recent');
-    if(!r.ok) return;
-    const items = await r.json();
-    const tbody = document.getElementById('recentTable');
-    if(!items.length){
-      tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="empty-icon">⚡</div><h3>Nothing yet</h3><p>Create your first invoice or proposal to get started.</p></div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = items.map(a=>`<tr>
-      <td>${a.type==='invoice'?'🧾 Invoice':'📄 Proposal'}</td>
-      <td style="color:var(--white);font-weight:600">${a.title}</td>
-      <td style="font-weight:700;color:var(--brand)">${fmt(a.amount,a.currency)}</td>
-      <td>${badge(a.status)}</td>
-      <td style="color:var(--muted)">${fmtDate(a.date)}</td>
-    </tr>`).join('');
+async function loadOv(){
+  try{const r=await af('/dashboard/stats');if(!r.ok)return;const d=await r.json();
+    document.getElementById('statsRow').innerHTML=`
+      <div class="sc"><div class="sc-ico">🧾</div><div class="sc-lbl">Total Invoiced</div><div class="sc-val">${fmt(d.total_invoiced,d.currency)}</div><div class="sc-sub" style="color:var(--mu)">${d.invoice_count} invoices</div></div>
+      <div class="sc"><div class="sc-ico">✅</div><div class="sc-lbl">Collected</div><div class="sc-val cg">${fmt(d.total_paid,d.currency)}</div><div class="sc-sub cg">${d.collection_rate}% rate</div></div>
+      <div class="sc"><div class="sc-ico">⏳</div><div class="sc-lbl">Pending</div><div class="sc-val cam">${fmt(d.total_pending,d.currency)}</div><div class="sc-sub" style="color:var(--mu)">${d.proposals_sent} proposals</div></div>
+      <div class="sc"><div class="sc-ico">🚨</div><div class="sc-lbl">Overdue</div><div class="sc-val ${d.total_overdue>0?'cr':'cg'}">${fmt(d.total_overdue,d.currency)}</div><div class="sc-sub ${d.total_overdue>0?'cr':'cg'}">${d.overdue_count} overdue</div></div>`;
+    document.getElementById('chartCur').textContent='Monthly · '+d.currency;
+    drawChart(d.monthly_revenue,d.currency);loadRecAct();loadIns();
   }catch(e){}
 }
 
-// ── Proposals ─────────────────────────────────────────────────────────────────
-let _proposals = [];
-async function loadProposals(){
-  try{
-    const r = await authFetch('/proposals');
-    if(!r.ok) return;
-    _proposals = await r.json();
-    const tbody = document.getElementById('proposalTable');
-    if(!_proposals.length){
-      tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">📄</div>
-        <h3>No proposals yet</h3><p>Click "+ New Proposal" to create your first AI-powered proposal.</p>
-        <button class="btn btn-primary btn-sm" onclick="openNewProposal()">+ New Proposal</button>
-      </div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = _proposals.map(p=>`<tr>
-      <td style="font-weight:600;color:var(--white)">${p.title}</td>
-      <td style="color:var(--muted)">${p.client_id?'Client':'-'}</td>
-      <td style="font-weight:700;color:var(--brand)">${fmt(p.total_amount,p.currency)}</td>
-      <td>${badge(p.status)}</td>
-      <td style="color:var(--muted)">${fmtDate(p.created_at)}</td>
-      <td><div class="td-actions">
-        ${p.status!=='accepted'?`<button class="btn btn-sm btn-primary btn-xs" onclick="sendProposal('${p.id}','${p.title.replace(/'/g,"\\'")}')">Send</button>`:''}
-        <button class="btn btn-sm btn-red btn-xs" onclick="deleteProposal('${p.id}')">✕</button>
-      </div></td>
-    </tr>`).join('');
+function drawChart(m,c){if(_rChart){_rChart.destroy();_rChart=null;}const ctx=document.getElementById('revChart').getContext('2d');const v=m.map(x=>x.revenue);const mx=Math.max(...v,1);_rChart=new Chart(ctx,{type:'bar',data:{labels:m.map(x=>x.month),datasets:[{label:'Revenue',data:v,backgroundColor:v.map(x=>x===mx?'rgba(124,58,237,.9)':'rgba(124,58,237,.22)'),borderColor:v.map(x=>x===mx?'#7c3aed':'rgba(124,58,237,.4)'),borderWidth:1,borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a0028',titleColor:'#e2e8f0',bodyColor:'#94a3b8',callbacks:{label:ctx=>' '+fmt(ctx.parsed.y,c)}}},scales:{x:{grid:{color:'rgba(255,255,255,.025)'},ticks:{color:'rgba(255,255,255,.18)',font:{size:9}}},y:{grid:{color:'rgba(255,255,255,.025)'},ticks:{color:'rgba(255,255,255,.18)',font:{size:9},callback:v=>fmt(v,c)},beginAtZero:true}}}});}
+
+let _insL=false;
+async function loadIns(force=false){if(_insL)return;if(!force&&Date.now()-_insTs<300000)return;_insL=true;const el=document.getElementById('insEl');el.innerHTML='<div class="sk sk-h"></div><div class="sk sk-h" style="width:72%"></div>';try{const r=await af('/dashboard/insights');if(r.ok){const d=await r.json();el.textContent=d.insights||'No insights yet.';_insTs=Date.now();}}catch(e){el.textContent='Add GROQ_API_KEY to enable AI insights.';}finally{_insL=false;}}
+
+async function loadRecAct(){try{const r=await af('/dashboard/recent');if(!r.ok)return;const it=await r.json();const tb=document.getElementById('recBody');if(!it.length){tb.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-ico">⚡</div><h3>No activity yet</h3><p>Create your first invoice to get started.</p></div></td></tr>`;return;}tb.innerHTML=it.map(a=>`<tr><td style="color:var(--mu)">${a.type==='invoice'?'🧾':'📄'} ${a.type}</td><td style="color:var(--w);font-weight:600">${a.title}</td><td style="font-weight:700;color:#a78bfa">${fmt(a.amount,a.currency)}</td><td>${badge(a.status)}</td><td style="color:var(--mu)">${fd(a.date)}</td></tr>`).join('');}catch(e){}}
+
+async function loadPm(){document.getElementById('psS').textContent='Set PAYSTACK_SECRET_KEY';document.getElementById('waS').textContent='Set WHATSAPP env vars';document.getElementById('rsS').textContent='Set RESEND_API_KEY';}
+
+async function loadPrs(){
+  try{const r=await af('/proposals');if(!r.ok)return;const ps=await r.json();
+    const banners=document.getElementById('cvBanners');
+    banners.innerHTML=ps.filter(p=>p.status==='accepted').map(p=>`<div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.18);border-radius:10px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px;animation:fin .3s ease"><span style="font-size:11px;color:#34d399">✅ "<b style="color:var(--w)">${p.title}</b>" accepted by ${p.client_name||'client'}!</span><button class="btn btn-gr btn-sm" onclick="cvProp('${p.id}','${p.title.replace(/'/g,"\'")}')">Convert → Invoice</button></div>`).join('');
+    const tb=document.getElementById('prBody');
+    if(!ps.length){tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="empty-ico">📄</div><h3>No proposals</h3><p>Create your first AI proposal.</p><button class="btn btn-p btn-sm" onclick="openNewProp()">+ New Proposal</button></div></td></tr>`;return;}
+    tb.innerHTML=ps.map(p=>`<tr><td style="font-weight:600;color:var(--w)">${p.title}</td><td style="color:var(--mu)">${p.client_name||'—'}</td><td style="font-weight:700;color:#a78bfa">${fmt(p.total_amount,p.currency)}</td><td>${badge(p.status)}</td><td style="color:var(--mu)">${fd(p.created_at)}</td>
+    <td><div class="tda">${p.status==='accepted'?`<button class="btn btn-xs btn-gr" onclick="cvProp('${p.id}','${p.title.replace(/'/g,"\'")}')">→ Inv</button>`:''} ${p.status!=='accepted'?`<button class="btn btn-xs btn-p" onclick="snProp('${p.id}','${p.title.replace(/'/g,"\'")}')">Send</button>`:''} <button class="btn btn-xs btn-rd" onclick="dlProp('${p.id}')">✕</button></div></td></tr>`).join('');
   }catch(e){}
 }
+async function cvProp(id,t){if(!confirm(`Convert "${t}" to invoice?`))return;try{const r=await af(`/proposals/${id}/convert-to-invoice`,{method:'POST'});const d=await r.json();if(d.success){alrt(d.message,'s','prAl');loadPrs();setTimeout(()=>go('invoices'),1500);}else alrt(d.detail||'Failed','e','prAl');}catch(e){alrt('Error','e','prAl');}}
+async function snProp(id,t){if(!confirm(`Send "${t}"?`))return;try{const r=await af(`/proposals/${id}/send`,{method:'POST'});const d=await r.json();alrt(d.message||'Sent!','s','prAl');loadPrs();}catch(e){}}
+async function dlProp(id){if(!confirm('Delete?'))return;await af(`/proposals/${id}`,{method:'DELETE'});loadPrs();}
 
-async function sendProposal(id, title){
-  if(!confirm(`Send proposal "${title}"?`)) return;
-  try{
-    const r = await authFetch(`/proposals/${id}/send`,{method:'POST'});
-    const d = await r.json();
-    showAlert(d.message||'Proposal sent!','success','propAlert');
-    loadProposals();
-  }catch(e){ showAlert('Failed to send','error','propAlert'); }
-}
-
-async function deleteProposal(id){
-  if(!confirm('Delete this proposal?')) return;
-  try{
-    await authFetch(`/proposals/${id}`,{method:'DELETE'});
-    loadProposals();
+async function loadInvs(){
+  try{const st=document.getElementById('inFilt')?.value||'';const r=await af('/invoices'+(st?'?status='+st:''));if(!r.ok)return;const iv=await r.json();
+    const tb=document.getElementById('inBody');
+    if(!iv.length){tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="empty-ico">🧾</div><h3>No invoices</h3><p>Create an invoice and get paid.</p><button class="btn btn-p btn-sm" onclick="openNewInv()">+ New Invoice</button></div></td></tr>`;return;}
+    const now=new Date();
+    tb.innerHTML=iv.map(i=>{const ov=i.due_date&&i.status!=='paid'&&new Date(i.due_date)<now;const st=ov?'overdue':i.status;
+      return `<tr><td style="font-family:monospace;font-size:10px;color:#a78bfa">${i.invoice_number}</td><td style="font-weight:600;color:var(--w)">${i.client_name||i.title||'—'}</td><td style="font-weight:700;color:#a78bfa">${fmt(i.total,i.currency)}</td><td style="color:${ov?'var(--r)':'var(--mu)'};font-size:10px">${fd(i.due_date)}</td><td>${badge(st)}</td>
+      <td><div class="tda">
+        ${i.status==='draft'?`<button class="btn btn-xs btn-p" onclick="snInv('${i.id}','${(i.client_name||'').replace(/'/g,"\'")}')">Send</button>`:''}
+        ${i.status!=='paid'?`<button class="btn btn-xs btn-am" onclick="reInv('${i.id}')" title="Email reminder">📧</button>`:''}
+        ${i.status!=='paid'?`<button class="btn btn-xs btn-wa" onclick="opWA('${i.id}')" title="WhatsApp reminder">💬</button>`:''}
+        ${i.status!=='paid'?`<button class="btn btn-xs btn-gr" onclick="mkPd('${i.id}')">✓</button>`:''}
+        <button class="btn btn-xs btn-g" onclick="dlPDF('${i.id}','${i.invoice_number}')">PDF</button>
+        ${i.status==='paid'?`<button class="btn btn-xs btn-g" onclick="dlRec('${i.id}','${i.invoice_number}')">Rcpt</button>`:''}
+        <button class="btn btn-xs btn-g" onclick="shEm('${i.id}')">📬</button>
+        <button class="btn btn-xs btn-rd" onclick="dlInv('${i.id}')">✕</button>
+      </div></td></tr>`;}).join('');
   }catch(e){}
 }
+async function snInv(id,n){if(!confirm(`Send to ${n||'client'}?`))return;try{const r=await af(`/invoices/${id}/send`,{method:'POST'});const d=await r.json();alrt(d.message||'Sent!','s','inAl');loadInvs();}catch(e){alrt('Error','e','inAl');}}
+async function reInv(id){try{const r=await af(`/invoices/${id}/remind`,{method:'POST'});const d=await r.json();alrt(d.message||'Reminder sent!','s','inAl');}catch(e){}}
+async function mkPd(id){if(!confirm('Mark as paid?'))return;const r=await af(`/invoices/${id}/mark-paid`,{method:'POST'});if(r.ok)loadInvs();}
+async function dlInv(id){if(!confirm('Delete invoice?'))return;const r=await af(`/invoices/${id}`,{method:'DELETE'});if(r.ok)loadInvs();}
+async function dlPDF(id,n){try{const r=await af(`/invoices/${id}/pdf`);if(!r.ok)return;const b=await r.blob();const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`${n}.pdf`;a.click();URL.revokeObjectURL(u);}catch(e){}}
+async function dlRec(id,n){try{const r=await af(`/invoices/${id}/receipt`);if(!r.ok)return;const b=await r.blob();const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`Receipt-${n}.pdf`;a.click();URL.revokeObjectURL(u);}catch(e){}}
+async function opWA(invId){_waId=invId;document.getElementById('waMsg').value='Loading…';openM('waMod');try{const r=await af(`/invoices/${invId}`);const i=await r.json();document.getElementById('waTo').textContent=`To: ${i.client_name||'—'}`;const now=new Date();let days=0;if(i.due_date){const d=new Date(i.due_date);days=Math.max(0,Math.floor((now-d)/86400000));}const pu=i.paystack_payment_link||window.location.origin+'/pay/'+i.public_token;document.getElementById('waMsg').value=`Hello ${i.client_name||'there'} 👋
 
-// ── Invoices ──────────────────────────────────────────────────────────────────
-let _invoices = [];
-async function loadInvoices(){
-  try{
-    const status = document.getElementById('invFilter')?.value||'';
-    const r = await authFetch('/invoices'+(status?'?status='+status:''));
-    if(!r.ok) return;
-    _invoices = await r.json();
-    const tbody = document.getElementById('invoiceTable');
-    if(!_invoices.length){
-      tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">🧾</div>
-        <h3>No invoices yet</h3><p>Click "+ New Invoice" to send your first invoice and get paid.</p>
-        <button class="btn btn-primary btn-sm" onclick="openNewInvoice()">+ New Invoice</button>
-      </div></td></tr>`;
-      return;
-    }
-    // Check overdue
-    const today = new Date();
-    tbody.innerHTML = _invoices.map(inv=>{
-      const isOverdue = inv.due_date && inv.status!=='paid' && new Date(inv.due_date)<today;
-      const status = isOverdue && inv.status!=='paid' ? 'overdue' : inv.status;
-      const emailStatus = inv.email_status;
-      return `<tr>
-        <td style="font-family:monospace;font-size:12px;color:var(--brand)">${inv.invoice_number}</td>
-        <td style="font-weight:600;color:var(--white)">${inv.client_name||inv.title||'—'}</td>
-        <td style="font-weight:700;color:var(--brand)">${fmt(inv.total,inv.currency)}</td>
-        <td style="color:${isOverdue?'var(--red)':'var(--muted)'}">${fmtDate(inv.due_date)}</td>
-        <td>${badge(status)}</td>
-        <td>
-          <button class="btn btn-xs btn-outline" onclick="showEmailTrail('${inv.id}')" title="View email history">
-            📬
-          </button>
-        </td>
-        <td><div class="td-actions">
-          ${inv.status==='draft'?`<button class="btn btn-xs btn-primary" onclick="sendInvoice('${inv.id}','${(inv.client_name||'').replace(/'/g,"\\'")}')">Send</button>`:''}
-          ${inv.status!=='paid'?`<button class="btn btn-xs btn-yellow" onclick="sendReminder('${inv.id}','${(inv.client_name||'').replace(/'/g,"\\'")}')">Remind</button>`:''}
-          ${inv.status!=='paid'?`<button class="btn btn-xs btn-green" onclick="markPaid('${inv.id}')">Paid ✓</button>`:''}
-          <button class="btn btn-xs btn-outline" onclick="downloadPDF('${inv.id}','${inv.invoice_number}')">PDF</button>
-          ${inv.status==='paid'?`<button class="btn btn-xs btn-outline" onclick="downloadReceipt('${inv.id}','${inv.invoice_number}')">Receipt</button>`:''}
-          <button class="btn btn-xs btn-red" onclick="deleteInvoice('${inv.id}')">✕</button>
-        </div></td>
-      </tr>`;
-    }).join('');
-  }catch(e){ console.error(e); }
-}
+This is a reminder from ${_u?.business_name||_u?.name||'us'}.
 
-async function sendInvoice(id, clientName){
-  if(!confirm(`Send invoice to ${clientName||'client'}?`)) return;
-  try{
-    const r = await authFetch(`/invoices/${id}/send`,{method:'POST'});
-    const d = await r.json();
-    if(d.success){
-      showAlert(`${d.message} · Email: ${d.email_provider}`,'success','invAlert');
-      if(d.payment_url) copyLink(d.payment_url);
-    } else showAlert('Send failed','error','invAlert');
-    loadInvoices();
-  }catch(e){ showAlert('Error sending invoice','error','invAlert'); }
-}
+📄 Invoice: ${i.invoice_number}
+💰 Amount: ${i.currency} ${Number(i.total).toLocaleString()}
+📅 Due: ${i.due_date||'N/A'}
 
-async function sendReminder(id, name){
-  if(!confirm(`Send AI reminder to ${name||'client'}?`)) return;
-  try{
-    const r = await authFetch(`/invoices/${id}/remind`,{method:'POST'});
-    const d = await r.json();
-    showAlert(d.message||'Reminder sent!','success','invAlert');
-  }catch(e){ showAlert('Error','error','invAlert'); }
-}
+${days>0?`This invoice is ${days} day(s) overdue.`:'Payment is due soon.'}
 
-async function markPaid(id){
-  if(!confirm('Mark this invoice as paid?')) return;
-  const r = await authFetch(`/invoices/${id}/mark-paid`,{method:'POST'});
-  if(r.ok) loadInvoices();
-}
+👉 ${pu}
 
-async function deleteInvoice(id){
-  if(!confirm('Delete this invoice? This cannot be undone.')) return;
-  const r = await authFetch(`/invoices/${id}`,{method:'DELETE'});
-  if(r.ok) loadInvoices();
-}
+Thank you!
+— ${_u?.business_name||_u?.name} via PropelPay ⚡`;}catch(e){document.getElementById('waMsg').value='Could not load invoice.';}}
+async function sendWA(){if(!_waId){closeM('waMod');return;}try{const r=await af(`/invoices/${_waId}/send-whatsapp`,{method:'POST',body:{invoice_id:_waId,custom_message:document.getElementById('waMsg').value}});const d=await r.json();closeM('waMod');if(d.success)alrt(d.message,'s','inAl');else alrt(d.message||'Add WHATSAPP_PHONE_ID + WHATSAPP_ACCESS_TOKEN to Render env','w','inAl');}catch(e){alrt('Error','e','inAl');}}
+async function shEm(id){openM('emMod');const b=document.getElementById('emBody');b.innerHTML='<div class="sk sk-h"></div>';try{const r=await af(`/invoices/${id}/emails`);const logs=await r.json();if(!logs.length){b.innerHTML='<div class="empty" style="padding:24px"><div class="empty-ico">📭</div><h3>No emails sent</h3></div>';return;}const c={sent:'#34d399',failed:'#f87171',queued:'#94a3b8'};b.innerHTML=logs.map(l=>`<div style="display:flex;align-items:center;gap:7px;padding:8px 0;border-bottom:1px solid var(--bdr)"><div style="width:6px;height:6px;border-radius:50%;background:${c[l.status]||'#64748b'};flex-shrink:0"></div><div style="flex:1"><div style="font-weight:600;color:var(--w);font-size:11px">${l.type}</div><div style="font-size:10px;color:var(--mu)">${l.to} · ${fd(l.sent_at)}</div></div>${badge(l.status)}</div>`).join('');}catch(e){b.textContent='Failed.';}}
 
-async function showEmailTrail(invoiceId){
-  openModal('emailTrailOverlay');
-  const box = document.getElementById('emailTrailContent');
-  box.innerHTML = '<div class="skeleton sk-line"></div><div class="skeleton sk-line" style="width:70%"></div>';
-  try{
-    const r = await authFetch(`/invoices/${invoiceId}/emails`);
-    const logs = await r.json();
-    if(!logs.length){
-      box.innerHTML = '<div class="empty" style="padding:32px"><div class="empty-icon">📭</div><h3>No emails sent yet</h3><p>Send the invoice to see delivery history here.</p></div>';
-      return;
-    }
-    const colors = {sent:'#34d399',failed:'#f87171',queued:'#94a3b8',delivered:'#10b981',opened:'#6366f1'};
-    box.innerHTML = logs.map(l=>`
-      <div class="email-item">
-        <div class="email-dot" style="background:${colors[l.status]||'#94a3b8'}"></div>
-        <div style="flex:1">
-          <div style="font-weight:600;color:var(--white)">${l.type.charAt(0).toUpperCase()+l.type.slice(1)}</div>
-          <div style="color:var(--muted)">${l.to} · ${fmtDate(l.sent_at)}</div>
-        </div>
-        <span class="badge badge-${l.status}">${l.status}</span>
-      </div>`).join('');
-  }catch(e){ box.textContent='Failed to load email history.'; }
-}
-
-// ── PDF / Receipt ─────────────────────────────────────────────────────────────
-async function downloadPDF(invoiceId, invNum){
-  try{
-    const r = await authFetch(`/invoices/${invoiceId}/pdf`);
-    if(!r.ok){ showAlert('Could not generate PDF','error','invAlert'); return; }
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href=url; a.download=`${invNum}.pdf`; a.click();
-    URL.revokeObjectURL(url);
-  }catch(e){ showAlert('PDF error: '+e.message,'error','invAlert'); }
-}
-
-async function downloadReceipt(invoiceId, invNum){
-  try{
-    const r = await authFetch(`/invoices/${invoiceId}/receipt`);
-    if(!r.ok){ showAlert('Could not generate receipt','error','invAlert'); return; }
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href=url; a.download=`Receipt-${invNum}.pdf`; a.click();
-    URL.revokeObjectURL(url);
-  }catch(e){ showAlert('Receipt error: '+e.message,'error','invAlert'); }
-}
-
-// ── Clients ───────────────────────────────────────────────────────────────────
-let _clientsList = [];
-async function loadClientsDropdown(){
-  try{
-    const r = await authFetch('/clients');
-    if(!r.ok) return;
-    _clientsList = await r.json();
-    ['pClient','iClient'].forEach(id=>{
-      const sel = document.getElementById(id);
-      if(!sel) return;
-      const cur = sel.value;
-      sel.innerHTML = '<option value="">— Select client —</option>'+
-        _clientsList.map(c=>`<option value="${c.id}">${c.name} (${c.email})</option>`).join('');
-      if(cur) sel.value = cur;
-    });
+async function loadRec(){
+  try{const r=await af('/recurring');if(!r.ok)return;const recs=await r.json();const c=document.getElementById('recList');
+    if(!recs.length){c.innerHTML=`<div class="empty"><div class="empty-ico">🔄</div><h3>No recurring invoices</h3><p>Set up a monthly retainer and get paid automatically.</p><button class="btn btn-p btn-sm" onclick="openNewRec()">+ New</button></div>`;return;}
+    const fl={weekly:'Weekly',monthly:'Monthly',quarterly:'Quarterly',yearly:'Yearly'};
+    c.innerHTML=recs.map(r=>`<div style="background:var(--card2);border:1px solid var(--bdr);border-radius:11px;padding:13px 15px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div><div style="font-weight:700;color:var(--w);font-size:12px">${r.title}</div><div style="font-size:10px;color:var(--mu);margin-top:2px">${r.client_name||'No client'} · ${fl[r.frequency]||r.frequency} · Next: ${fd(r.next_run_date)}</div></div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:15px;font-weight:900;color:#a78bfa">${fmt(r.total,r.currency)}</span>${badge(r.status)}<button class="btn btn-xs btn-p" onclick="gnNow('${r.id}')">Generate</button>${r.status==='active'?`<button class="btn btn-xs btn-am" onclick="tgRec('${r.id}','paused')">Pause</button>`:`<button class="btn btn-xs btn-gr" onclick="tgRec('${r.id}','active')">Resume</button>`}<button class="btn btn-xs btn-rd" onclick="dlRec2('${r.id}')">✕</button></div>
+    </div>`).join('');
   }catch(e){}
 }
+async function gnNow(id){if(!confirm('Generate one invoice now?'))return;try{const r=await af(`/recurring/${id}/generate-now`,{method:'POST'});const d=await r.json();alrt(d.message,'s','reAl');loadRec();}catch(e){}}
+async function tgRec(id,s){await af(`/recurring/${id}`,{method:'PATCH',body:{status:s}});loadRec();}
+async function dlRec2(id){if(!confirm('Delete this recurring series?'))return;await af(`/recurring/${id}`,{method:'DELETE'});loadRec();}
 
-async function loadClients(){
-  try{
-    const r = await authFetch('/clients');
-    if(!r.ok) return;
-    _clientsList = await r.json();
-    const tbody = document.getElementById('clientTable');
-    if(!_clientsList.length){
-      tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">👥</div>
-        <h3>No clients yet</h3><p>Add your first client to start sending proposals and invoices.</p>
-        <button class="btn btn-primary btn-sm" onclick="openNewClient()">+ Add Client</button>
-      </div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = _clientsList.map(c=>`<tr>
-      <td style="font-weight:700;color:var(--white)">${c.name}</td>
-      <td style="color:var(--muted)">${c.email}</td>
-      <td style="color:var(--muted)">${c.phone||'—'}</td>
-      <td style="color:var(--muted)">${c.company||'—'}</td>
-      <td style="color:var(--muted)">${fmtDate(c.created_at)}</td>
-      <td><button class="btn btn-xs btn-red" onclick="deleteClient('${c.id}')">✕</button></td>
-    </tr>`).join('');
-  }catch(e){}
+async function loadDrp(){try{const r=await af('/clients');if(!r.ok)return;_cl=await r.json();['prCl','inCl','reCl'].forEach(id=>{const s=document.getElementById(id);if(!s)return;const cv=s.value;s.innerHTML='<option value="">— Select —</option>'+_cl.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');if(cv)s.value=cv;});}catch(e){}}
+async function loadCls(){try{const r=await af('/clients');if(!r.ok)return;_cl=await r.json();const tb=document.getElementById('clBody');if(!_cl.length){tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="empty-ico">👥</div><h3>No clients yet</h3><p>Add your first client.</p><button class="btn btn-p btn-sm" onclick="openNewClient()">+ Add Client</button></div></td></tr>`;return;}tb.innerHTML=_cl.map(c=>`<tr><td style="font-weight:700;color:var(--w)">${c.name}</td><td style="color:var(--mu)">${c.email}</td><td style="color:var(--mu)">${c.phone||'—'}</td><td style="color:var(--mu)">${c.company||'—'}</td><td>${c.website?`<a href="${c.website}" target="_blank" style="color:#a78bfa;font-size:10px">🔗 Open</a>`:'—'}</td><td><button class="btn btn-xs btn-rd" onclick="dlCl('${c.id}')">✕</button></td></tr>`).join('');}catch(e){}}
+
+function openNewClient(){['clNm','clEm','clPh','clCo','clWb','clAd'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const btn=document.getElementById('svClBtn');btn.disabled=false;btn.textContent='Add Client';openM('clMod');}
+async function saveCl(){
+  const nm=document.getElementById('clNm').value.trim(),em=document.getElementById('clEm').value.trim();
+  if(!nm||!em){alrt('Name and email required','e','clAl');return;}
+  const btn=document.getElementById('svClBtn');btn.disabled=true;btn.textContent='Saving…';
+  try{const r=await af('/clients',{method:'POST',body:{name:nm,email:em,phone:document.getElementById('clPh').value||null,company:document.getElementById('clCo').value||null,website:document.getElementById('clWb').value||null,address:document.getElementById('clAd').value||null}});
+    const d=await r.json();
+    if(d.id){closeM('clMod');alrt(`"${d.name}" added!`,'s','clAl');loadCls();loadDrp();}
+    else{alrt(d.detail||JSON.stringify(d),'e','clAl');btn.disabled=false;btn.textContent='Add Client';}
+  }catch(e){alrt('Error: '+e.message,'e','clAl');btn.disabled=false;btn.textContent='Add Client';}
 }
+async function dlCl(id){if(!confirm('Delete client?'))return;await af(`/clients/${id}`,{method:'DELETE'});loadCls();loadDrp();}
 
-async function saveClient(){
-  const name=document.getElementById('cName').value.trim();
-  const email=document.getElementById('cEmail').value.trim();
-  if(!name||!email){ showAlert('Name and email are required','error','clientAlert'); return; }
-  try{
-    const r = await authFetch('/clients',{method:'POST',body:{
-      name,email,phone:document.getElementById('cPhone').value,
-      company:document.getElementById('cCompany').value,
-      address:document.getElementById('cAddress').value
-    }});
-    const d = await r.json();
-    closeModal('clientOverlay');
-    showAlert('Client added!','success','clientAlert');
-    ['cName','cEmail','cPhone','cCompany','cAddress'].forEach(id=>document.getElementById(id).value='');
-    loadClients(); loadClientsDropdown();
-  }catch(e){ showAlert('Error adding client','error','clientAlert'); }
-}
+function openNewInv(){_ic=0;document.getElementById('itmRows').innerHTML='';['inTi','inNo'].forEach(id=>document.getElementById(id).value='');document.getElementById('inTx').value='0';document.getElementById('inDs').value='0';const d=new Date();d.setDate(d.getDate()+14);document.getElementById('inDu').value=d.toISOString().split('T')[0];if(_u)document.getElementById('inCu').value=_u.currency||'NGN';addItm();openM('invMod');}
+function addItm(){_ic++;const d=document.createElement('div');d.className='ir';d.id='it'+_ic;d.innerHTML=`<input placeholder="Description" class="iD" oninput="cTot()"><input type="number" placeholder="Qty" value="1" min="0.01" step="0.01" class="iQ" oninput="cTot()"><input type="number" placeholder="Price" min="0" step="0.01" class="iP" oninput="cTot()"><button class="rb" onclick="document.getElementById('it${_ic}').remove();cTot()">✕</button>`;document.getElementById('itmRows').appendChild(d);d.querySelector('.iD').focus();}
+function cTot(){let s=0;document.querySelectorAll('#itmRows .ir').forEach(r=>{s+=(parseFloat(r.querySelector('.iQ').value)||0)*(parseFloat(r.querySelector('.iP').value)||0);});const t=parseFloat(document.getElementById('inTx').value)||0,ds=parseFloat(document.getElementById('inDs').value)||0,cu=document.getElementById('inCu').value||'NGN';document.getElementById('invTot').textContent=fmt(s+s*(t/100)-ds,cu);}
+async function saveInv(){const rows=document.querySelectorAll('#itmRows .ir');const items=[];rows.forEach(r=>{const d=r.querySelector('.iD').value.trim();const q=parseFloat(r.querySelector('.iQ').value)||1;const p=parseFloat(r.querySelector('.iP').value)||0;if(d)items.push({description:d,quantity:q,unit_price:p});});if(!items.length){alrt('Add at least one line item','w','inAl');return;}try{const r=await af('/invoices',{method:'POST',body:{client_id:document.getElementById('inCl').value||null,title:document.getElementById('inTi').value,items,tax_rate:parseFloat(document.getElementById('inTx').value)||0,discount:parseFloat(document.getElementById('inDs').value)||0,currency:document.getElementById('inCu').value||'NGN',due_date:document.getElementById('inDu').value,notes:document.getElementById('inNo').value}});const d=await r.json();if(d.invoice_number){closeM('invMod');alrt(`Invoice ${d.invoice_number} created!`,'s','inAl');go('invoices');loadInvs();}else alrt(JSON.stringify(d),'e','inAl');}catch(e){alrt('Error: '+e.message,'e','inAl');}}
 
-async function deleteClient(id){
-  if(!confirm('Delete this client?')) return;
-  const r = await authFetch(`/clients/${id}`,{method:'DELETE'});
-  if(r.ok){ showAlert('Client removed','success','clientAlert'); loadClients(); loadClientsDropdown(); }
-}
+function openNewRec(){_rc=0;document.getElementById('ritmRows').innerHTML='';document.getElementById('reTi').value='';const s=new Date();s.setDate(s.getDate()+1);document.getElementById('reSt').value=s.toISOString().split('T')[0];document.getElementById('reEn').value='';if(_u)document.getElementById('reCu').value=_u.currency||'NGN';addRI();openM('recMod');}
+function addRI(){_rc++;const d=document.createElement('div');d.className='ir';d.id='ri'+_rc;d.innerHTML=`<input placeholder="Service" class="rD" oninput="cRec()"><input type="number" placeholder="Qty" value="1" min="0.01" step="0.01" class="rQ" oninput="cRec()"><input type="number" placeholder="Price" min="0" step="0.01" class="rP" oninput="cRec()"><button class="rb" onclick="document.getElementById('ri${_rc}').remove();cRec()">✕</button>`;document.getElementById('ritmRows').appendChild(d);}
+function cRec(){let s=0;document.querySelectorAll('#ritmRows .ir').forEach(r=>{s+=(parseFloat(r.querySelector('.rQ').value)||0)*(parseFloat(r.querySelector('.rP').value)||0);});document.getElementById('recTot').textContent=fmt(s,document.getElementById('reCu').value||'NGN');}
+async function saveRec(){const rows=document.querySelectorAll('#ritmRows .ir');const items=[];rows.forEach(r=>{const d=r.querySelector('.rD').value.trim();const q=parseFloat(r.querySelector('.rQ').value)||1;const p=parseFloat(r.querySelector('.rP').value)||0;if(d)items.push({description:d,quantity:q,unit_price:p});});if(!items.length){alrt('Add a line item','w','reAl');return;}const st=document.getElementById('reSt').value;if(!st){alrt('Start date required','w','reAl');return;}try{const r=await af('/recurring',{method:'POST',body:{client_id:document.getElementById('reCl').value||null,title:document.getElementById('reTi').value||'Recurring Invoice',items,currency:document.getElementById('reCu').value,frequency:document.getElementById('reFr').value,start_date:st,end_date:document.getElementById('reEn').value||null,auto_send:document.getElementById('reAs').checked}});const d=await r.json();closeM('recMod');alrt(`Recurring set — next: ${fd(d.next_run_date)}`,'s','reAl');loadRec();}catch(e){alrt('Error: '+e.message,'e','reAl');}}
 
-// ── Invoice form ──────────────────────────────────────────────────────────────
-let _itemCount = 0;
-function openNewInvoice(){
-  _itemCount=0;
-  document.getElementById('itemRows').innerHTML='';
-  document.getElementById('invTotal').textContent='—';
-  ['iTitle','iNotes'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('iTax').value='0';
-  document.getElementById('iDiscount').value='0';
-  const due = new Date(); due.setDate(due.getDate()+14);
-  document.getElementById('iDue').value = due.toISOString().split('T')[0];
-  if(_user) document.getElementById('iCurrency').value = _user.currency||'NGN';
-  addItem();
-  openModal('invoiceOverlay');
-}
+function openNewProp(){_pc=0;document.getElementById('plRows').innerHTML='';document.getElementById('aiRes').style.display='none';document.getElementById('svPrBtn').disabled=true;_aiD=null;openM('propMod');}
+function addPL(){_pc++;const d=document.createElement('div');d.className='plr';d.id='pl'+_pc;d.innerHTML=`<input placeholder="Label (e.g. Our Website, Portfolio)" class="plL"><input placeholder="https://example.com" class="plU"><button class="rb btn-xs" onclick="document.getElementById('pl${_pc}').remove()">✕</button>`;document.getElementById('plRows').appendChild(d);}
+async function genProp(){const sv=document.getElementById('prSv').value.trim(),sc=document.getElementById('prSc').value.trim();if(!sv||!sc){alrt('Fill service and scope','w','prAl');return;}const btn=document.getElementById('aiBtn');btn.textContent='⏳ Writing…';btn.disabled=true;const box=document.getElementById('aiRes');box.style.display='block';box.innerHTML='<div class="sk sk-h"></div><div class="sk sk-h" style="width:75%"></div>';try{const r=await af('/proposals/ai-draft',{method:'POST',body:{client_id:document.getElementById('prCl').value||null,service_type:sv,scope:sc,budget:document.getElementById('prBu').value,tone:document.getElementById('prTo').value}});const d=await r.json();_aiD=d;box.textContent=d.content||'';document.getElementById('svPrBtn').disabled=false;}catch(e){box.textContent='AI unavailable. Check GROQ_API_KEY in Render env.';}btn.textContent='✨ Generate with AI';btn.disabled=false;}
+async function saveProp(){if(!_aiD){alrt('Generate first','w','prAl');return;}const pls=[];document.querySelectorAll('#plRows .plr').forEach(r=>{const l=r.querySelector('.plL').value.trim(),u=r.querySelector('.plU').value.trim();if(u)pls.push({title:l||u,url:u});});try{const r=await af('/proposals',{method:'POST',body:{title:_aiD.title||(document.getElementById('prSv').value+' Proposal'),client_id:document.getElementById('prCl').value||null,content:_aiD.content,services:_aiD.services||[],total_amount:_aiD.suggested_total||0,currency:(_u?.currency)||'NGN',portfolio_links:pls}});const d=await r.json();closeM('propMod');alrt('Proposal saved! Go to Proposals to send it.','s','prAl');loadPrs();}catch(e){alrt('Save error','e','prAl');}}
 
-function addItem(){
-  _itemCount++;
-  const div = document.createElement('div');
-  div.className='item-row'; div.id='item-'+_itemCount;
-  div.innerHTML=`
-    <input placeholder="Description" class="item-desc" oninput="calcTotal()">
-    <input type="number" placeholder="Qty" value="1" min="0.01" step="0.01" class="item-qty" oninput="calcTotal()">
-    <input type="number" placeholder="Unit price" min="0" step="0.01" class="item-price" oninput="calcTotal()">
-    <button class="remove-btn" onclick="document.getElementById('item-${_itemCount}').remove();calcTotal()">✕</button>`;
-  document.getElementById('itemRows').appendChild(div);
-  div.querySelector('.item-desc').focus();
-}
-
-function calcTotal(){
-  const rows = document.querySelectorAll('#itemRows .item-row');
-  let sub=0;
-  rows.forEach(r=>{
-    const q = parseFloat(r.querySelector('.item-qty').value)||0;
-    const p = parseFloat(r.querySelector('.item-price').value)||0;
-    sub += q*p;
-  });
-  const tax = parseFloat(document.getElementById('iTax').value)||0;
-  const disc = parseFloat(document.getElementById('iDiscount').value)||0;
-  const total = sub + sub*(tax/100) - disc;
-  const cur = document.getElementById('iCurrency').value||(_user?.currency)||'NGN';
-  document.getElementById('invTotal').textContent = fmt(total,cur);
-  return {rows, sub, tax, disc, total};
-}
-
-async function saveInvoice(){
-  const rows = document.querySelectorAll('#itemRows .item-row');
-  const items = [];
-  rows.forEach(r=>{
-    const d = r.querySelector('.item-desc').value.trim();
-    const q = parseFloat(r.querySelector('.item-qty').value)||1;
-    const p = parseFloat(r.querySelector('.item-price').value)||0;
-    if(d) items.push({description:d,quantity:q,unit_price:p});
-  });
-  if(!items.length){ showAlert('Add at least one line item','error','invAlert'); return; }
-  try{
-    const r = await authFetch('/invoices',{method:'POST',body:{
-      client_id:document.getElementById('iClient').value||null,
-      title:document.getElementById('iTitle').value,
-      items,
-      tax_rate:parseFloat(document.getElementById('iTax').value)||0,
-      discount:parseFloat(document.getElementById('iDiscount').value)||0,
-      currency:document.getElementById('iCurrency').value||'NGN',
-      due_date:document.getElementById('iDue').value,
-      notes:document.getElementById('iNotes').value,
-      auto_reminders:true
-    }});
-    const d = await r.json();
-    if(d.invoice_number){
-      closeModal('invoiceOverlay');
-      showAlert(`Invoice ${d.invoice_number} created!`,'success','invAlert');
-      showPage('invoices'); loadInvoices();
-    } else showAlert(JSON.stringify(d),'error','invAlert');
-  }catch(e){ showAlert('Error: '+e.message,'error','invAlert'); }
-}
-
-// ── Proposal form ─────────────────────────────────────────────────────────────
-let _aiProposalData = null;
-function openNewProposal(){
-  document.getElementById('aiProposalResult').style.display='none';
-  document.getElementById('aiProposalResult').textContent='';
-  document.getElementById('savePropBtn').disabled=true;
-  _aiProposalData=null;
-  openModal('proposalOverlay');
-}
-
-async function generateAIProposal(){
-  const service = document.getElementById('pService').value.trim();
-  const scope   = document.getElementById('pScope').value.trim();
-  if(!service||!scope){ showAlert('Fill service type and scope','warn','propAlert'); return; }
-  const btn = document.getElementById('aiGenBtn');
-  btn.textContent='⏳ Generating…'; btn.disabled=true;
-  const box = document.getElementById('aiProposalResult');
-  box.style.display='block'; box.textContent='Writing your proposal…';
-  try{
-    const r = await authFetch('/proposals/ai-draft',{method:'POST',body:{
-      client_id:document.getElementById('pClient').value||null,
-      service_type:service, scope,
-      budget:document.getElementById('pBudget').value,
-      tone:document.getElementById('pTone').value
-    }});
-    const d = await r.json();
-    _aiProposalData = d;
-    box.innerHTML = (d.content||'').replace(/\n/g,'<br>');
-    document.getElementById('savePropBtn').disabled=false;
-  }catch(e){ box.textContent='AI unavailable. Check GROQ_API_KEY.'; }
-  btn.textContent='✨ Generate with AI'; btn.disabled=false;
-}
-
-async function saveAIProposal(){
-  if(!_aiProposalData){ showAlert('Generate a proposal first','warn','propAlert'); return; }
-  try{
-    const r = await authFetch('/proposals',{method:'POST',body:{
-      title:_aiProposalData.title||(document.getElementById('pService').value+' Proposal'),
-      client_id:document.getElementById('pClient').value||null,
-      content:_aiProposalData.content,
-      services:_aiProposalData.services||[],
-      total_amount:_aiProposalData.suggested_total||0,
-      currency:(_user?.currency)||'NGN',
-    }});
-    const d = await r.json();
-    closeModal('proposalOverlay');
-    showAlert('Proposal saved! Open Proposals to send it.','success','propAlert');
-    loadProposals();
-  }catch(e){ showAlert('Save error','error','propAlert'); }
-}
-
-// ── Settings ──────────────────────────────────────────────────────────────────
-function switchSettingsTab(tab){
-  ['profile','banks','plan'].forEach(t=>{
-    document.getElementById('settingsTab-'+t).style.display = t===tab?'block':'none';
-    const btn = document.getElementById('stab-'+t);
-    btn.className = t===tab ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm';
-  });
-  if(tab==='banks') loadBankAccounts();
-  if(tab==='plan') loadPlanInfo();
-}
-
-async function loadSettings(){
-  try{
-    const r = await authFetch('/auth/me');
-    if(!r.ok) return;
-    const u = await r.json(); _user=u;
-    document.getElementById('pName').value = u.name||'';
-    document.getElementById('pBusiness').value = u.business_name||'';
-    document.getElementById('pPhone').value = u.phone||'';
-    document.getElementById('pCountry').value = u.country||'Nigeria';
-    document.getElementById('pCurrency').value = u.currency||'NGN';
-    document.getElementById('pEmail').value = u.email||'';
-  }catch(e){}
-}
-
-async function saveProfile(){
-  try{
-    const r = await authFetch('/auth/profile',{method:'PUT',body:{
-      name:document.getElementById('pName').value,
-      business_name:document.getElementById('pBusiness').value,
-      phone:document.getElementById('pPhone').value,
-      country:document.getElementById('pCountry').value,
-      currency:document.getElementById('pCurrency').value,
-    }});
-    const d = await r.json();
-    showAlert('Profile saved!','success','settingsAlert');
-    if(_user){ _user.currency=document.getElementById('pCurrency').value; }
-  }catch(e){ showAlert('Save error','error','settingsAlert'); }
-}
-
-// ── Bank Accounts ─────────────────────────────────────────────────────────────
-const CURRENCY_FLAGS = {NGN:'🇳🇬',USD:'🇺🇸',GBP:'🇬🇧',EUR:'🇪🇺',GHS:'🇬🇭',KES:'🇰🇪',ZAR:'🇿🇦'};
-let _banks = [];
-
-async function loadBankAccounts(){
-  const grid = document.getElementById('bankGrid');
-  try{
-    const r = await authFetch('/banks');
-    const d = await r.json();
-    _banks = d.banks||[];
-    if(!_banks.length){
-      grid.innerHTML=`<div style="grid-column:1/-1"><div class="empty" style="padding:40px">
-        <div class="empty-icon">🏦</div><h3>No bank accounts yet</h3>
-        <p>Add accounts for each currency. Clients see the right bank on their invoice automatically.</p>
-        <button class="btn btn-primary btn-sm" onclick="openAddBank()">+ Add Bank Account</button>
-      </div></div>`;
-      return;
-    }
-    grid.innerHTML = _banks.map(b=>`
-      <div class="bank-card ${b.is_primary?'primary':''}">
-        <div class="bank-card-currency">${CURRENCY_FLAGS[b.currency]||''} ${b.currency}
-          ${b.is_primary?'<span class="badge badge-paid" style="margin-left:4px">Primary</span>':''}
-        </div>
-        <div class="bank-card-name">${b.bank_name}</div>
-        <div class="bank-card-num">${b.account_name}</div>
-        <div class="bank-card-num" style="font-family:monospace">••••${b.account_number.slice(-4)}</div>
-        <div style="display:flex;gap:6px;margin-top:10px">
-          ${!b.is_primary?`<button class="btn btn-xs btn-outline" onclick="setPrimaryBank('${b.id}')">Set Primary</button>`:''}
-          <button class="btn btn-xs btn-red" onclick="deleteBank('${b.id}')">Remove</button>
-        </div>
-      </div>`).join('');
-  }catch(e){ grid.innerHTML='<p style="color:var(--red)">Failed to load bank accounts.</p>'; }
-}
-
-function openAddBank(){
-  const c = document.getElementById('bCurrency').value;
-  const intl = ['USD','GBP'].includes(c);
-  const eur  = c==='EUR';
-  document.getElementById('intlBankFields').style.display = intl||eur?'grid':'none';
-  document.getElementById('ibanField').style.display = eur||c==='GBP'?'block':'none';
-  openModal('bankOverlay');
-}
-
-document.getElementById('bCurrency')?.addEventListener('change',function(){
-  const c = this.value;
-  document.getElementById('intlBankFields').style.display = ['USD','GBP','EUR'].includes(c)?'grid':'none';
-  document.getElementById('ibanField').style.display = ['EUR','GBP'].includes(c)?'block':'none';
-});
-
-async function saveBank(){
-  const name = document.getElementById('bName').value.trim();
-  const num  = document.getElementById('bNum').value.trim();
-  const aname= document.getElementById('bAccName').value.trim();
-  if(!name||!num||!aname){ showAlert('Bank name, account number and account name are required','error','settingsAlert'); return; }
-  try{
-    const r = await authFetch('/banks',{method:'POST',body:{
-      currency:document.getElementById('bCurrency').value,
-      bank_name:name,account_number:num,account_name:aname,
-      routing_number:document.getElementById('bRouting')?.value||null,
-      swift_code:document.getElementById('bSwift')?.value||null,
-      iban:document.getElementById('bIban')?.value||null,
-      is_primary:document.getElementById('bPrimary').checked,
-    }});
-    const d = await r.json();
-    closeModal('bankOverlay');
-    showAlert('Bank account added!','success','settingsAlert');
-    loadBankAccounts();
-  }catch(e){ showAlert('Error: '+e.message,'error','settingsAlert'); }
-}
-
-async function setPrimaryBank(id){
-  await authFetch(`/banks/${id}`,{method:'PUT',body:{is_primary:true}});
-  loadBankAccounts();
-}
-
-async function deleteBank(id){
-  if(!confirm('Remove this bank account?')) return;
-  const r = await authFetch(`/banks/${id}`,{method:'DELETE'});
-  if(r.ok) loadBankAccounts();
-}
-
-// ── Plan ──────────────────────────────────────────────────────────────────────
-async function loadPlanInfo(){
-  const desc = document.getElementById('planDesc');
-  const plan = _user?.plan||'free';
-  const limits = {free:'3 invoices, 3 proposals, 5 clients',solo:'50 invoices, 50 proposals, 50 clients',agency:'Unlimited everything',enterprise:'Unlimited + enterprise support'};
-  desc.textContent = `You are on the ${plan.charAt(0).toUpperCase()+plan.slice(1)} plan. ${limits[plan]||''}`;
-}
-
-async function upgradePlan(plan){
-  try{
-    const r = await authFetch('/billing/subscribe',{method:'POST',body:{plan}});
-    const d = await r.json();
-    if(d.payment_url) window.open(d.payment_url,'_blank');
-    else showAlert(d.message||'Contact support to upgrade','info','settingsAlert');
-  }catch(e){}
-}
-
-// ── Utils ─────────────────────────────────────────────────────────────────────
-function openModal(id){ document.getElementById(id).classList.add('open'); }
-function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-function copyLink(url){
-  navigator.clipboard?.writeText(url).catch(()=>{});
-  showAlert('Payment link copied to clipboard!','info','invAlert');
-}
-function logout(){
-  localStorage.removeItem('pp_token');
-  localStorage.removeItem('pp_user');
-  location.href='/';
-}
-
-// Close modals on backdrop click
-document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); }));
+function stab(t){['profile','banks','plan'].forEach(x=>{document.getElementById('sc-'+x).style.display=x===t?'block':'none';document.getElementById('st-'+x).className='stab'+(x===t?' on':'');});if(t==='banks')loadBanks();if(t==='plan')loadPlan();}
+async function loadSet(){try{const r=await af('/auth/me');if(!r.ok)return;const u=await r.json();_u=u;document.getElementById('pNm').value=u.name||'';document.getElementById('pBiz').value=u.business_name||'';document.getElementById('pPh').value=u.phone||'';document.getElementById('pCur').value=u.currency||'NGN';document.getElementById('pEm').value=u.email||'';}catch(e){}}
+async function savePro(){try{await af('/auth/profile',{method:'PUT',body:{name:document.getElementById('pNm').value,business_name:document.getElementById('pBiz').value,phone:document.getElementById('pPh').value,currency:document.getElementById('pCur').value}});alrt('Profile saved!','s','seAl');}catch(e){alrt('Error','e','seAl');}}
+async function loadBanks(){const g=document.getElementById('bankGrid');try{const r=await af('/banks');const d=await r.json();const banks=d.banks||[];if(!banks.length){g.innerHTML=`<div style="grid-column:1/-1"><div class="empty" style="padding:24px"><div class="empty-ico">🏦</div><h3>No bank accounts</h3><p>Add accounts per currency.</p><button class="btn btn-p btn-sm" onclick="openAddBank()">+ Add</button></div></div>`;return;}const fl={NGN:'🇳🇬',USD:'🇺🇸',GBP:'🇬🇧',EUR:'🇪🇺',GHS:'🇬🇭',KES:'🇰🇪',ZAR:'🇿🇦'};g.innerHTML=banks.map(b=>`<div class="bcard ${b.is_primary?'pri':''}"><div class="bc-cur">${fl[b.currency]||''} ${b.currency} ${b.is_primary?'· Primary':''}</div><div class="bc-bk">${b.bank_name}</div><div class="bc-nm">${b.account_name}</div><div class="bc-nm">••••${b.account_number.slice(-4)}</div><div style="display:flex;gap:4px;margin-top:8px">${!b.is_primary?`<button class="btn btn-xs btn-g" onclick="spBank('${b.id}')">Primary</button>`:''}<button class="btn btn-xs btn-rd" onclick="dlBank('${b.id}')">Remove</button></div></div>`).join('');}catch(e){g.innerHTML='<p style="color:var(--r);font-size:11px">Failed to load.</p>';}}
+function openAddBank(){tbf();openM('bankMod');}
+function tbf(){const c=document.getElementById('bkCu').value;document.getElementById('bkIntl').style.display=['USD','GBP','EUR'].includes(c)?'block':'none';}
+async function saveBank(){const n=document.getElementById('bkNm').value.trim(),nu=document.getElementById('bkNu').value.trim(),an=document.getElementById('bkAn').value.trim();if(!n||!nu||!an){alrt('All fields required','e','seAl');return;}try{await af('/banks',{method:'POST',body:{currency:document.getElementById('bkCu').value,bank_name:n,account_number:nu,account_name:an,routing_number:document.getElementById('bkRo')?.value||null,swift_code:document.getElementById('bkSw')?.value||null,is_primary:document.getElementById('bkPr').checked}});closeM('bankMod');alrt('Bank added!','s','seAl');loadBanks();}catch(e){}}
+async function spBank(id){await af(`/banks/${id}`,{method:'PUT',body:{is_primary:true}});loadBanks();}
+async function dlBank(id){if(!confirm('Remove?'))return;await af(`/banks/${id}`,{method:'DELETE'});loadBanks();}
+async function loadPlan(){const p=_u?.plan||'free';const L={free:'3 invoices, 3 proposals, 5 clients',solo:'50 invoices, recurring billing, AI drafts',agency:'Unlimited everything'};document.getElementById('planDesc').textContent=`You are on the ${p.charAt(0).toUpperCase()+p.slice(1)} plan. ${L[p]||''}`;}
+async function upgPlan(plan){try{const r=await af('/billing/upgrade',{method:'POST',body:{plan}});const d=await r.json();if(d.authorization_url)window.open(d.authorization_url,'_blank');else alrt(d.message||'Contact support','i','seAl');}catch(e){}}
 </script>
 </body>
 </html>
