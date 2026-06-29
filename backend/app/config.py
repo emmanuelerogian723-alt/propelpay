@@ -9,10 +9,10 @@ class Settings(BaseSettings):
         extra="ignore", case_sensitive=False,
     )
     APP_NAME: str = "PropelPay"
-    VERSION: str = "2.0.0"
+    VERSION: str = "3.0.0"
     ENVIRONMENT: str = "development"
-    SECRET_KEY: str = "change-me-super-secret-key-propelpay-2026"
-    FRONTEND_URL: str = "http://localhost:3000"
+    SECRET_KEY: str = "change-me-propelpay-secret-2026"
+    FRONTEND_URL: str = "http://localhost:8000"
     BACKEND_URL: str = "http://localhost:8000"
     DATABASE_URL: str = "sqlite+aiosqlite:///./propelpay.db"
     JWT_SECRET_KEY: str = "propelpay-jwt-secret-2026-change-me"
@@ -23,14 +23,13 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
 
-    # Payments
+    # Payments — Paystack
     PAYSTACK_SECRET_KEY: str = ""
     PAYSTACK_PUBLIC_KEY: str = ""
-    STRIPE_SECRET_KEY: str = ""
 
-    # Email — Resend (primary, free 3k/month, https://resend.com)
+    # Email — Resend (primary, free 3k/month)
     RESEND_API_KEY: str = ""
-    RESEND_FROM_EMAIL: str = ""           # e.g. noreply@yourdomain.com
+    RESEND_FROM_EMAIL: str = ""
 
     # Email — SMTP fallback
     SMTP_HOST: str = "smtp.gmail.com"
@@ -40,6 +39,12 @@ class Settings(BaseSettings):
     SMTP_FROM_NAME: str = "PropelPay"
     SMTP_FROM_EMAIL: str = ""
 
+    # WhatsApp Business API (Meta Cloud API)
+    WHATSAPP_PHONE_ID: str = ""          # Phone Number ID from Meta dashboard
+    WHATSAPP_ACCESS_TOKEN: str = ""      # Permanent system user token
+    WHATSAPP_API_VERSION: str = "v19.0"
+    WHATSAPP_VERIFY_TOKEN: str = "propelpay_wa_verify_2026"
+
     @property
     def DEBUG(self) -> bool:
         return self.ENVIRONMENT != "production"
@@ -47,17 +52,15 @@ class Settings(BaseSettings):
     @property
     def PLAN_LIMITS(self) -> dict:
         return {
-            "free":       {"proposals": 3,  "invoices": 5,  "clients": 5,  "ai_drafts": 3},
-            "solo":       {"proposals": 50, "invoices": 100,"clients": 50, "ai_drafts": 50},
-            "agency":     {"proposals": -1, "invoices": -1, "clients": -1, "ai_drafts": -1},
-            "enterprise": {"proposals": -1, "invoices": -1, "clients": -1, "ai_drafts": -1},
+            "free":       {"proposals": 3,  "invoices": 5,  "clients": 5,  "ai_drafts": 3,  "recurring": 0},
+            "solo":       {"proposals": 50, "invoices": 100,"clients": 50, "ai_drafts": 50, "recurring": 5},
+            "agency":     {"proposals": -1, "invoices": -1, "clients": -1, "ai_drafts": -1, "recurring": -1},
+            "enterprise": {"proposals": -1, "invoices": -1, "clients": -1, "ai_drafts": -1, "recurring": -1},
         }
+
     @property
     def PLAN_PRICES_NGN(self) -> dict:
         return {"free": 0, "solo": 9900, "agency": 24900, "enterprise": 79900}
-    @property
-    def PLAN_PRICES_USD(self) -> dict:
-        return {"free": 0, "solo": 1500, "agency": 2900, "enterprise": 7900}
 
 
 @lru_cache()
