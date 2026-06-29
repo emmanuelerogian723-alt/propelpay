@@ -1,7 +1,7 @@
-"""Invoices endpoints"""
+"""Invoices endpoints — v2 with Resend email + email tracking"""
 import secrets
 from datetime import datetime, date, timedelta
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
@@ -14,13 +14,18 @@ from app.models.payment import Payment
 from app.models.follow_up import FollowUp
 from app.services.auth import get_current_user
 from app.services.payments import create_payment_link, paystack_verify
-from app.services.email import send_invoice_notification, send_payment_received, send_payment_reminder
+from app.services.email import (
+    send_invoice_email, send_payment_received,
+    send_payment_reminder as _send_reminder
+)
 from app.services.ai import write_follow_up
+from app.services.pdf_generator import generate_invoice_pdf, generate_receipt_pdf
 from app.config import get_settings
 import asyncio
 
 settings = get_settings()
 router = APIRouter(prefix="/invoices", tags=["invoices"])
+
 
 class ItemReq(BaseModel):
     description: str
@@ -34,20 +39,24 @@ class InvoiceReq(BaseModel):
     tax_rate: float = 0
     discount: float = 0
     currency: str = "NGN"
-    due_date: Optional[str] = None  # YYYY-MM-DD
+    due_date: Optional[str] = None
     notes: Optional[str] = None
     terms: Optional[str] = None
     auto_reminders: bool = True
 
-def _invoice_dict(inv: Invoice, items: list = None) -> dict:
+
+def _invoice_dict(inv: Invoice, items: list = None, client: Client = None) -> dict:
     return {
         "id": inv.id, "invoice_number": inv.invoice_number, "title": inv.title,
-        "client_id": inv.client_id, "subtotal": inv.subtotal,
-        "tax_rate": inv.tax_rate, "tax_amount": inv.tax_amount,
+        "client_id": inv.client_id,
+        "client_name": client.name if client else None,
+        "client_email": client.email if client else None,
+        "subtotal": inv.subtotal, "tax_rate": inv.tax_rate, "tax_amount": inv.tax_amount,
         "discount": inv.discount, "total": inv.total,
         "currency": inv.currency, "status": inv.status,
         "due_date": inv.due_date, "paid_at": inv.paid_at,
-        "public_token": inv.public_token, "paystack_payment_link": inv.paystack_payment_link,
+        "public_token": inv.public_token,
+        "paystack_payment_link": inv.paystack_payment_link,
         "notes": inv.notes, "terms": inv.terms,
         "auto_reminders": inv.auto_reminders, "reminder_count": inv.reminder_count,
         "created_at": str(inv.created_at),
@@ -55,22 +64,52 @@ def _invoice_dict(inv: Invoice, items: list = None) -> dict:
                    "unit_price": i.unit_price, "total": i.total} for i in (items or [])]
     }
 
+
 async def _gen_invoice_number(db: AsyncSession, user_id: str) -> str:
     count_result = await db.execute(
-        select(func.count(Invoice.id)).where(Invoice.user_id == user_id)
-    )
+        select(func.count(Invoice.id)).where(Invoice.user_id == user_id))
     count = count_result.scalar() or 0
     return f"INV-{date.today().strftime('%Y%m')}-{(count+1):04d}"
 
+
+async def _get_items(db: AsyncSession, invoice_id: str) -> list:
+    res = await db.execute(select(InvoiceItem).where(InvoiceItem.invoice_id == invoice_id))
+    return res.scalars().all()
+
+
+async def _get_client(db: AsyncSession, client_id: str) -> Optional[Client]:
+    if not client_id: return None
+    res = await db.execute(select(Client).where(Client.id == client_id))
+    return res.scalar_one_or_none()
+
+
 @router.get("")
-async def list_invoices(status: Optional[str] = None, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def list_invoices(
+    status: Optional[str] = None,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
     q = select(Invoice).where(Invoice.user_id == user.id)
-    if status: q = q.where(Invoice.status == status)
+    if status:
+        q = q.where(Invoice.status == status)
     result = await db.execute(q.order_by(Invoice.created_at.desc()))
-    return [_invoice_dict(i) for i in result.scalars().all()]
+    invoices = result.scalars().all()
+    # Batch load clients
+    client_ids = list({i.client_id for i in invoices if i.client_id})
+    clients = {}
+    if client_ids:
+        cr = await db.execute(select(Client).where(Client.id.in_(client_ids)))
+        for c in cr.scalars().all():
+            clients[c.id] = c
+    return [_invoice_dict(i, client=clients.get(i.client_id)) for i in invoices]
+
 
 @router.post("")
-async def create_invoice(body: InvoiceReq, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def create_invoice(
+    body: InvoiceReq,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
     inv_number = await _gen_invoice_number(db, user.id)
     token = secrets.token_urlsafe(32)
     subtotal = sum(item.quantity * item.unit_price for item in body.items)
@@ -88,7 +127,6 @@ async def create_invoice(body: InvoiceReq, user: User = Depends(get_current_user
     )
     db.add(inv)
     await db.flush()
-
     items = []
     for item in body.items:
         ii = InvoiceItem(
@@ -102,297 +140,322 @@ async def create_invoice(body: InvoiceReq, user: User = Depends(get_current_user
     await db.refresh(inv)
     return _invoice_dict(inv, items)
 
+
 @router.get("/{invoice_id}")
-async def get_invoice(invoice_id: str, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
+async def get_invoice(
+    invoice_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
     inv = result.scalar_one_or_none()
     if not inv: raise HTTPException(404, "Invoice not found")
-    items_res = await db.execute(select(InvoiceItem).where(InvoiceItem.invoice_id == inv.id))
-    return _invoice_dict(inv, items_res.scalars().all())
+    items = await _get_items(db, inv.id)
+    client = await _get_client(db, inv.client_id)
+    return _invoice_dict(inv, items, client)
+
+
+@router.put("/{invoice_id}")
+async def update_invoice(
+    invoice_id: str, data: dict,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
+    inv = result.scalar_one_or_none()
+    if not inv: raise HTTPException(404, "Invoice not found")
+    allowed = ["title", "notes", "terms", "due_date", "currency", "tax_rate", "discount", "auto_reminders"]
+    for k, v in data.items():
+        if k in allowed: setattr(inv, k, v)
+    await db.commit()
+    return {"success": True}
+
 
 @router.post("/{invoice_id}/send")
-async def send_invoice(invoice_id: str, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
+async def send_invoice(
+    invoice_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
     inv = result.scalar_one_or_none()
     if not inv: raise HTTPException(404, "Invoice not found")
 
-    client = None
-    if inv.client_id:
-        res = await db.execute(select(Client).where(Client.id == inv.client_id))
-        client = res.scalar_one_or_none()
+    client = await _get_client(db, inv.client_id)
+    if not client: raise HTTPException(400, "Please attach a client to this invoice before sending")
+
+    items = await _get_items(db, inv.id)
+    items_data = [{"description": i.description, "quantity": i.quantity,
+                   "unit_price": i.unit_price, "total": i.total} for i in items]
 
     # Generate Paystack payment link
     pay_url = f"{settings.FRONTEND_URL}/pay/{inv.public_token}"
-    if client and settings.PAYSTACK_SECRET_KEY:
-        cb = f"{settings.BACKEND_URL}/invoices/payment/verify/{inv.public_token}"
-        link_result = await create_payment_link(
-            email=client.email, amount=inv.total, currency=inv.currency,
-            invoice_id=inv.id, invoice_number=inv.invoice_number,
-            callback_url=cb, user_name=user.business_name or user.name
-        )
-        if link_result.get("authorization_url"):
-            inv.paystack_payment_link = link_result["authorization_url"]
-            pay_url = link_result["authorization_url"]
+    if settings.PAYSTACK_SECRET_KEY:
+        try:
+            cb = f"{settings.BACKEND_URL}/invoices/payment/verify/{inv.public_token}"
+            amount_kobo = int(inv.total * 100) if inv.currency == "NGN" else int(inv.total * 100)
+            link_result = await create_payment_link(
+                email=client.email, amount=amount_kobo,
+                invoice_id=inv.id, invoice_number=inv.invoice_number,
+                callback_url=cb, currency=inv.currency,
+                user_name=user.business_name or user.name
+            )
+            if link_result.get("authorization_url"):
+                inv.paystack_payment_link = link_result["authorization_url"]
+                pay_url = link_result["authorization_url"]
+        except Exception as e:
+            pass  # Non-fatal, use fallback URL
 
     inv.status = "sent"
     await db.commit()
 
-    if client:
-        amount_str = f"{inv.currency} {inv.total:,.2f}"
-        asyncio.create_task(send_invoice_notification(
-            client.email, client.name, user.business_name or user.name,
-            inv.invoice_number, amount_str, inv.due_date or "N/A", pay_url
-        ))
+    amount_str = f"{inv.currency} {inv.total:,.2f}"
+    asyncio.create_task(send_invoice_email(
+        to=client.email,
+        client_name=client.name,
+        sender_name=user.business_name or user.name,
+        invoice_number=inv.invoice_number,
+        amount=amount_str,
+        due_date=inv.due_date or "N/A",
+        items=items_data,
+        pay_url=pay_url,
+        user_id=user.id,
+        invoice_id=inv.id
+    ))
 
-    return {"success": True, "payment_url": pay_url, "invoice_number": inv.invoice_number,
-            "message": f"Invoice sent to {client.email if client else 'client'}"}
+    return {
+        "success": True,
+        "payment_url": pay_url,
+        "invoice_number": inv.invoice_number,
+        "message": f"Invoice sent to {client.email}",
+        "email_provider": "resend" if settings.RESEND_API_KEY else ("smtp" if settings.SMTP_USER else "none")
+    }
+
 
 @router.post("/{invoice_id}/remind")
-async def send_reminder(invoice_id: str, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    """Send AI-powered payment reminder."""
-    result = await db.execute(select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
+async def send_reminder(
+    invoice_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
     inv = result.scalar_one_or_none()
     if not inv: raise HTTPException(404, "Invoice not found")
     if inv.status == "paid": raise HTTPException(400, "Invoice already paid")
-
-    client = None
-    if inv.client_id:
-        res = await db.execute(select(Client).where(Client.id == inv.client_id))
-        client = res.scalar_one_or_none()
+    client = await _get_client(db, inv.client_id)
     if not client: raise HTTPException(400, "No client attached to invoice")
 
-    # Calculate overdue days
     days_overdue = 0
     if inv.due_date:
         due = datetime.strptime(inv.due_date, "%Y-%m-%d").date()
         days_overdue = max(0, (date.today() - due).days)
 
-    inv.reminder_count += 1
-    attempt = inv.reminder_count
+    inv.reminder_count = (inv.reminder_count or 0) + 1
 
-    # AI-generated message
     ai_msg = write_follow_up(
         client_name=client.name, invoice_number=inv.invoice_number,
-        amount=inv.total, currency=inv.currency, days_overdue=days_overdue,
-        business_name=user.business_name or user.name, attempt=attempt
+        amount=inv.total, currency=inv.currency,
+        days_overdue=days_overdue,
+        business_name=user.business_name or user.name,
+        attempt=inv.reminder_count
     )
 
     pay_url = inv.paystack_payment_link or f"{settings.FRONTEND_URL}/pay/{inv.public_token}"
-    asyncio.create_task(send_payment_reminder(
-        client.email, client.name, user.business_name or user.name,
-        inv.invoice_number, f"{inv.currency} {inv.total:,.2f}",
-        days_overdue, pay_url, ai_msg
+
+    asyncio.create_task(_send_reminder(
+        to=client.email, client_name=client.name,
+        business_name=user.business_name or user.name,
+        invoice_number=inv.invoice_number,
+        amount=f"{inv.currency} {inv.total:,.2f}",
+        days_overdue=days_overdue, pay_url=pay_url,
+        custom_message=ai_msg,
+        user_id=user.id, invoice_id=inv.id
     ))
 
-    fu = FollowUp(invoice_id=inv.id, type="email", message=ai_msg, sent=True,
-                  sent_at=datetime.utcnow().isoformat())
+    fu = FollowUp(invoice_id=inv.id, type="email", message=ai_msg,
+                  sent=True, sent_at=datetime.utcnow().isoformat())
     db.add(fu)
     await db.commit()
-    return {"success": True, "message": f"Reminder #{attempt} sent to {client.email}", "ai_message": ai_msg}
+    return {
+        "success": True,
+        "message": f"Reminder #{inv.reminder_count} sent to {client.email}",
+        "ai_message": ai_msg
+    }
+
 
 @router.post("/{invoice_id}/mark-paid")
-async def mark_paid(invoice_id: str, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
+async def mark_paid(
+    invoice_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
     inv = result.scalar_one_or_none()
     if not inv: raise HTTPException(404, "Invoice not found")
     inv.status = "paid"
     inv.paid_at = datetime.utcnow().isoformat()
     await db.commit()
+
+    # Notify business owner
+    if user.email:
+        asyncio.create_task(send_payment_received(
+            to=user.email, business_name=user.business_name or user.name,
+            amount=f"{inv.currency} {inv.total:,.2f}",
+            invoice_number=inv.invoice_number,
+            user_id=user.id, invoice_id=inv.id
+        ))
     return {"success": True, "message": "Invoice marked as paid"}
 
+
 @router.delete("/{invoice_id}")
-async def delete_invoice(invoice_id: str, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
+async def delete_invoice(
+    invoice_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
     inv = result.scalar_one_or_none()
     if not inv: raise HTTPException(404, "Invoice not found")
     await db.delete(inv)
     await db.commit()
     return {"success": True}
 
-# ── Public invoice view ────────────────────────────────────────────────────
 
-@router.get("/public/{token}")
-async def public_invoice(token: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Invoice).where(Invoice.public_token == token))
-    inv = result.scalar_one_or_none()
-    if not inv: raise HTTPException(404, "Invoice not found")
-    if inv.status == "sent": inv.status = "viewed"; await db.commit()
-    
-    res = await db.execute(select(User).where(User.id == inv.user_id))
-    sender = res.scalar_one_or_none()
-    client = None
-    if inv.client_id:
-        cr = await db.execute(select(Client).where(Client.id == inv.client_id))
-        client = cr.scalar_one_or_none()
-    items_res = await db.execute(select(InvoiceItem).where(InvoiceItem.invoice_id == inv.id))
-
-    return {
-        **_invoice_dict(inv, items_res.scalars().all()),
-        "sender": {"name": sender.name if sender else "", "business_name": sender.business_name if sender else "",
-                   "email": sender.email if sender else "", "phone": sender.phone if sender else "",
-                   "bank_name": sender.bank_name if sender else "",
-                   "bank_account": sender.bank_account if sender else "",
-                   "bank_account_name": sender.bank_account_name if sender else ""},
-        "client": {"name": client.name if client else "", "email": client.email if client else "",
-                   "company": client.company if client else ""},
-        "payment_url": inv.paystack_payment_link or f"{settings.FRONTEND_URL}/pay/{token}"
-    }
-
-@router.get("/payment/verify/{token}")
-async def verify_payment(token: str, reference: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Invoice).where(Invoice.public_token == token))
-    inv = result.scalar_one_or_none()
-    if not inv: raise HTTPException(404, "Invoice not found")
-
-    verify = await paystack_verify(reference)
-    if verify.get("success"):
-        inv.status = "paid"
-        inv.paid_at = datetime.utcnow().isoformat()
-        p = Payment(invoice_id=inv.id, user_id=inv.user_id, amount=verify["amount"],
-                    currency=inv.currency, provider="paystack", reference=reference, status="success")
-        db.add(p)
-        await db.commit()
-        res = await db.execute(select(User).where(User.id == inv.user_id))
-        user = res.scalar_one_or_none()
-        if user:
-            asyncio.create_task(send_payment_received(
-                user.email, user.business_name or user.name,
-                f"{inv.currency} {inv.total:,.2f}", inv.invoice_number
-            ))
-        return {"success": True, "message": "Payment confirmed!", "invoice": inv.invoice_number}
-    return {"success": False, "message": "Payment not verified"}
-
-# ── PDF / RECEIPT ENDPOINTS ──────────────────────────────────────────────────
-
-from fastapi.responses import StreamingResponse
-import io
+# ── PDF endpoints ─────────────────────────────────────────────────────────────
 
 @router.get("/{invoice_id}/pdf")
-async def download_invoice_pdf(
+async def get_pdf(
     invoice_id: str,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Download a beautiful PDF invoice."""
-    from app.services.pdf_generator import generate_invoice_pdf
-
-    inv_result = await db.execute(
-        select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id)
-    )
-    inv = inv_result.scalar_one_or_none()
-    if not inv:
-        raise HTTPException(404, "Invoice not found")
-
-    items_result = await db.execute(
-        select(InvoiceItem).where(InvoiceItem.invoice_id == invoice_id)
-    )
-    items = items_result.scalars().all()
-
-    # Get client info
-    client_name, client_email = "Client", ""
-    if inv.client_id:
-        c_result = await db.execute(select(Client).where(Client.id == inv.client_id))
-        client = c_result.scalar_one_or_none()
-        if client:
-            client_name = client.name
-            client_email = client.email or ""
-
-    pdf_bytes = generate_invoice_pdf(
-        invoice_number=inv.invoice_number,
-        business_name=user.business_name or user.name,
-        business_email=user.email,
-        client_name=client_name,
-        client_email=client_email,
-        items=[{"description": i.description, "quantity": i.quantity,
-                "unit_price": i.unit_price, "total": i.total} for i in items],
-        subtotal=inv.subtotal,
-        tax_rate=inv.tax_rate,
-        tax_amount=inv.tax_amount,
-        discount=inv.discount,
-        total=inv.total,
-        currency=inv.currency,
-        due_date=str(inv.due_date),
-        created_date=str(inv.created_at)[:10] if inv.created_at else "",
-        notes=inv.notes,
-        terms=inv.terms,
-        status=inv.status,
-        paystack_link=inv.paystack_payment_link,
-    )
-
-    filename = f"{inv.invoice_number}.pdf"
-    return StreamingResponse(
-        io.BytesIO(pdf_bytes),
-        media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"',
-                 "Content-Length": str(len(pdf_bytes))}
-    )
+    from fastapi.responses import Response
+    result = await db.execute(
+        select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
+    inv = result.scalar_one_or_none()
+    if not inv: raise HTTPException(404, "Invoice not found")
+    items = await _get_items(db, inv.id)
+    client = await _get_client(db, inv.client_id)
+    pdf_bytes = generate_invoice_pdf(inv, items, client, user)
+    return Response(content=pdf_bytes, media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="{inv.invoice_number}.pdf"'})
 
 
 @router.get("/{invoice_id}/receipt")
-async def download_receipt_pdf(
+async def get_receipt(
     invoice_id: str,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Download payment receipt PDF (only for paid invoices)."""
-    from app.services.pdf_generator import generate_receipt_pdf
-
-    inv_result = await db.execute(
-        select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id)
-    )
-    inv = inv_result.scalar_one_or_none()
-    if not inv:
-        raise HTTPException(404, "Invoice not found")
-    if inv.status != "paid":
-        raise HTTPException(400, "Receipt only available for paid invoices")
-
-    # Get client info
-    client_name, client_email = "Client", ""
-    if inv.client_id:
-        c_result = await db.execute(select(Client).where(Client.id == inv.client_id))
-        client = c_result.scalar_one_or_none()
-        if client:
-            client_name = client.name
-            client_email = client.email or ""
-
-    # Get payment ref
-    pay_result = await db.execute(
-        select(Payment).where(Payment.invoice_id == invoice_id).order_by(Payment.created_at.desc())
-    )
-    payment = pay_result.scalar_one_or_none()
+    from fastapi.responses import Response
+    result = await db.execute(
+        select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
+    inv = result.scalar_one_or_none()
+    if not inv: raise HTTPException(404, "Invoice not found")
+    if inv.status != "paid": raise HTTPException(400, "Invoice is not paid yet")
+    items = await _get_items(db, inv.id)
+    client = await _get_client(db, inv.client_id)
+    pay_res = await db.execute(select(Payment).where(Payment.invoice_id == inv.id).order_by(Payment.created_at.desc()))
+    payment = pay_res.scalars().first()
     tx_ref = payment.reference if payment else None
+    pdf_bytes = generate_receipt_pdf(inv, items, client, user, tx_ref)
+    return Response(content=pdf_bytes, media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="Receipt-{inv.invoice_number}.pdf"'})
 
-    paid_at = str(inv.paid_at)[:16] if inv.paid_at else str(inv.created_at)[:16]
 
-    receipt_bytes = generate_receipt_pdf(
-        invoice_number=inv.invoice_number,
-        business_name=user.business_name or user.name,
-        business_email=user.email,
-        client_name=client_name,
-        client_email=client_email,
-        total=inv.total,
-        currency=inv.currency,
-        paid_at=paid_at,
-        payment_method="Paystack",
-        transaction_ref=tx_ref,
-    )
-
-    filename = f"Receipt-{inv.invoice_number}.pdf"
-    return StreamingResponse(
-        io.BytesIO(receipt_bytes),
-        media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"',
-                 "Content-Length": str(len(receipt_bytes))}
-    )
-
+# ── Public invoice view ───────────────────────────────────────────────────────
 
 @router.get("/public/{token}")
 async def public_invoice(token: str, db: AsyncSession = Depends(get_db)):
-    """Public invoice view (no auth needed — for client payment page)."""
-    inv_result = await db.execute(select(Invoice).where(Invoice.public_token == token))
-    inv = inv_result.scalar_one_or_none()
-    if not inv:
-        raise HTTPException(404, "Invoice not found")
-    items_result = await db.execute(select(InvoiceItem).where(InvoiceItem.invoice_id == inv.id))
-    items = items_result.scalars().all()
-    return _invoice_dict(inv, items)
+    result = await db.execute(select(Invoice).where(Invoice.public_token == token))
+    inv = result.scalar_one_or_none()
+    if not inv: raise HTTPException(404, "Invoice not found")
+    if inv.status == "sent":
+        inv.status = "viewed"
+        await db.commit()
+    res = await db.execute(select(User).where(User.id == inv.user_id))
+    sender = res.scalar_one_or_none()
+    client = await _get_client(db, inv.client_id)
+    items = await _get_items(db, inv.id)
+    return {
+        **_invoice_dict(inv, items, client),
+        "sender": {
+            "name": sender.name if sender else "Business",
+            "business_name": sender.business_name if sender else "",
+            "email": sender.email if sender else "",
+            "phone": sender.phone if sender else "",
+        }
+    }
+
+
+# ── Paystack webhook ──────────────────────────────────────────────────────────
+
+@router.post("/payment/verify/{token}", include_in_schema=False)
+async def paystack_webhook(token: str, request: Request, db: AsyncSession = Depends(get_db)):
+    """Called by Paystack when payment is confirmed."""
+    import hmac, hashlib
+    body = await request.body()
+    sig = request.headers.get("x-paystack-signature", "")
+    if settings.PAYSTACK_SECRET_KEY:
+        expected = hmac.new(settings.PAYSTACK_SECRET_KEY.encode(), body, hashlib.sha512).hexdigest()
+        if sig and sig != expected:
+            raise HTTPException(400, "Invalid signature")
+
+    result = await db.execute(select(Invoice).where(Invoice.public_token == token))
+    inv = result.scalar_one_or_none()
+    if not inv: raise HTTPException(404, "Invoice not found")
+
+    try:
+        data = await request.json()
+        event = data.get("event", "")
+        charge = data.get("data", {})
+        if event == "charge.success" or charge.get("status") == "success":
+            inv.status = "paid"
+            inv.paid_at = datetime.utcnow().isoformat()
+            ref = charge.get("reference", "")
+            payment = Payment(
+                invoice_id=inv.id, user_id=inv.user_id,
+                amount=inv.total, currency=inv.currency,
+                provider="paystack", reference=ref, status="paid"
+            )
+            db.add(payment)
+            await db.commit()
+            # Notify business owner
+            res = await db.execute(select(User).where(User.id == inv.user_id))
+            owner = res.scalar_one_or_none()
+            if owner:
+                asyncio.create_task(send_payment_received(
+                    to=owner.email, business_name=owner.business_name or owner.name,
+                    amount=f"{inv.currency} {inv.total:,.2f}",
+                    invoice_number=inv.invoice_number,
+                    user_id=owner.id, invoice_id=inv.id
+                ))
+    except Exception as e:
+        pass
+    return {"status": "ok"}
+
+
+# ── Email log for this invoice ─────────────────────────────────────────────────
+
+@router.get("/{invoice_id}/emails")
+async def invoice_emails(
+    invoice_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get email delivery history for an invoice."""
+    from app.models.email_log import EmailLog
+    from sqlalchemy import select as sel
+    result = await db.execute(sel(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
+    if not result.scalar_one_or_none(): raise HTTPException(404, "Invoice not found")
+    logs = await db.execute(sel(EmailLog).where(EmailLog.invoice_id == invoice_id)
+                             .order_by(EmailLog.created_at.desc()))
+    return [{"id": l.id, "to": l.to_email, "subject": l.subject,
+             "type": l.email_type, "status": l.status, "provider": l.provider,
+             "sent_at": str(l.created_at)} for l in logs.scalars().all()]
