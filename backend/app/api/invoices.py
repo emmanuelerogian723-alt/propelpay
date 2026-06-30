@@ -342,9 +342,24 @@ async def get_pdf(
     if not inv: raise HTTPException(404, "Invoice not found")
     items = await _get_items(db, inv.id)
     client = await _get_client(db, inv.client_id)
-    pdf_bytes = generate_invoice_pdf(inv, items, client, user)
+    item_dicts = [{"description": i.description, "quantity": i.quantity,
+                   "unit_price": i.unit_price, "total": i.total} for i in items]
+    pdf_bytes = generate_invoice_pdf(
+        invoice_number=inv.invoice_number,
+        business_name=user.business_name or user.name or "My Business",
+        business_email=user.email,
+        client_name=client.name if client else "Client",
+        client_email=client.email if client else "",
+        items=item_dicts,
+        subtotal=inv.subtotal, tax_rate=inv.tax_rate, tax_amount=inv.tax_amount,
+        discount=inv.discount, total=inv.total, currency=inv.currency,
+        due_date=str(inv.due_date or ""), created_date=str(inv.created_at)[:10],
+        notes=inv.notes, terms=inv.terms, status=inv.status,
+        paystack_link=inv.paystack_payment_link
+    )
     return Response(content=pdf_bytes, media_type="application/pdf",
-                    headers={"Content-Disposition": f'attachment; filename="{inv.invoice_number}.pdf"'})
+                    headers={"Content-Disposition": f'attachment; filename="{inv.invoice_number}.pdf"',
+                             "Access-Control-Expose-Headers": "Content-Disposition"})
 
 
 @router.get("/{invoice_id}/receipt")
@@ -364,9 +379,19 @@ async def get_receipt(
     pay_res = await db.execute(select(Payment).where(Payment.invoice_id == inv.id).order_by(Payment.created_at.desc()))
     payment = pay_res.scalars().first()
     tx_ref = payment.reference if payment else None
-    pdf_bytes = generate_receipt_pdf(inv, items, client, user, tx_ref)
+    pdf_bytes = generate_receipt_pdf(
+        invoice_number=inv.invoice_number,
+        business_name=user.business_name or user.name or "My Business",
+        business_email=user.email,
+        client_name=client.name if client else "Client",
+        client_email=client.email if client else "",
+        total=inv.total, currency=inv.currency,
+        paid_at=str(inv.paid_at or ""),
+        transaction_ref=tx_ref
+    )
     return Response(content=pdf_bytes, media_type="application/pdf",
-                    headers={"Content-Disposition": f'attachment; filename="Receipt-{inv.invoice_number}.pdf"'})
+                    headers={"Content-Disposition": f'attachment; filename="Receipt-{inv.invoice_number}.pdf"',
+                             "Access-Control-Expose-Headers": "Content-Disposition"})
 
 
 # ── Public invoice view ───────────────────────────────────────────────────────
