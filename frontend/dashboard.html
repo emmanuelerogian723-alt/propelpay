@@ -4,7 +4,193 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PropelPay</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+// ── PROJECTS ──────────────────────────────────────────────────────────────────
+let _curProjId = null, _pdImgB64 = null, _pjImgB64 = null;
+
+function prvImg(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => { _pdImgB64 = e.target.result; document.getElementById('pdImgPrv').innerHTML = `<img src="${e.target.result}" style="max-height:100px;border-radius:8px;margin-top:5px">`; };
+  r.readAsDataURL(f);
+}
+function prvImg2(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => { _pjImgB64 = e.target.result; document.getElementById('pjImgPrv').innerHTML = `<img src="${e.target.result}" style="max-height:80px;border-radius:8px;margin-top:5px">`; };
+  r.readAsDataURL(f);
+}
+
+const statusColors = { planning:'#64748b', active:'#7c3aed', review:'#f59e0b', completed:'#10b981', paused:'#94a3b8' };
+const statusLabels = { planning:'🗒 Planning', active:'⚡ Active', review:'🔍 Review', completed:'✅ Done', paused:'⏸ Paused' };
+
+async function loadProjs() {
+  const st = document.getElementById('prjFilt')?.value || '';
+  try {
+    const r = await af('/projects' + (st ? '?status=' + st : ''));
+    if (!r.ok) return;
+    const ps = await r.json();
+    const g = document.getElementById('prjGrid');
+    if (!ps.length) {
+      g.innerHTML = `<div style="grid-column:1/-1"><div class="empty"><div class="empty-ico">🗂️</div><h3>No projects yet</h3><p>Track your work, upload progress images, and link projects to invoices.</p><button class="btn btn-p btn-sm" onclick="openNewProj()">+ New Project</button></div></div>`;
+      return;
+    }
+    g.innerHTML = ps.map(p => {
+      const col = statusColors[p.status] || '#7c3aed';
+      const lbl = statusLabels[p.status] || p.status;
+      const pct = Math.round(p.progress || 0);
+      const coverStyle = p.cover_image ? `background-image:url(${p.cover_image});background-size:cover;background-position:center` : `background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(109,40,217,.06))`;
+      return `<div style="background:var(--card);border:1px solid var(--bdr);border-radius:13px;overflow:hidden;cursor:pointer;transition:.2s" onmouseenter="this.style.borderColor='rgba(124,58,237,.3)'" onmouseleave="this.style.borderColor='var(--bdr)'" onclick="openProjDetail('${p.id}','${p.name.replace(/'/g,"\'")}')">
+        <div style="height:80px;${coverStyle};display:flex;align-items:flex-end;padding:8px 12px">
+          <span style="background:rgba(0,0,0,.7);color:${col};font-size:9px;font-weight:700;padding:2px 8px;border-radius:50px;border:1px solid ${col}">${lbl}</span>
+        </div>
+        <div style="padding:12px">
+          <div style="font-weight:700;color:var(--w);font-size:13px;margin-bottom:3px">${p.name}</div>
+          <div style="font-size:10px;color:var(--mu);margin-bottom:8px">${p.client_name || 'No client'} ${p.deadline ? '· Due ' + p.deadline : ''}</div>
+          <div style="background:rgba(255,255,255,.06);border-radius:50px;height:5px;overflow:hidden;margin-bottom:6px">
+            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#7c3aed,#10b981);border-radius:50px;transition:width .5s"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:10px;color:var(--mu)">${pct}% complete</span>
+            <span style="font-size:11px;font-weight:700;color:#a78bfa">${p.currency || 'NGN'} ${(p.budget||0).toLocaleString()}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function openProjDetail(id, name) {
+  _curProjId = id; _pdImgB64 = null;
+  document.getElementById('pdTitle').textContent = '🗂️ ' + name;
+  document.getElementById('pdNote').value = '';
+  document.getElementById('pdProg').value = '';
+  document.getElementById('pdImgPrv').innerHTML = '';
+  openM('projDetailMod');
+  const b = document.getElementById('pdBody');
+  b.innerHTML = '<div class="sk sk-h"></div><div class="sk sk-h" style="width:60%"></div>';
+  try {
+    const r = await af('/projects/' + id);
+    const p = await r.json();
+    document.getElementById('pdProg').value = p.progress || 0;
+    const updates = p.updates || [];
+    b.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <div style="background:var(--card2);border-radius:8px;padding:10px"><div style="font-size:9px;color:var(--mu)">BUDGET</div><div style="font-weight:700;color:#a78bfa">${p.currency} ${(p.budget||0).toLocaleString()}</div></div>
+        <div style="background:var(--card2);border-radius:8px;padding:10px"><div style="font-size:9px;color:var(--mu)">DEADLINE</div><div style="font-weight:700;color:var(--w)">${p.deadline || 'Not set'}</div></div>
+      </div>
+      ${p.description ? `<p style="font-size:12px;color:var(--mu);margin-bottom:10px">${p.description}</p>` : ''}
+      <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px">Progress Updates (${updates.length})</div>
+      <div style="max-height:180px;overflow-y:auto">
+        ${updates.length ? updates.map(u => `
+          <div style="background:var(--card2);border-radius:8px;padding:10px;margin-bottom:7px">
+            ${u.image_url ? `<img src="${u.image_url}" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-bottom:7px">` : ''}
+            <div style="font-size:12px;color:var(--tx)">${u.note}</div>
+            <div style="display:flex;justify-content:space-between;margin-top:5px">
+              <span style="font-size:10px;color:var(--mu)">${new Date(u.created_at).toLocaleDateString()}</span>
+              ${u.progress !== null ? `<span style="font-size:10px;font-weight:700;color:#a78bfa">${u.progress}%</span>` : ''}
+            </div>
+          </div>`).join('') : '<p style="font-size:11px;color:var(--mu)">No updates yet. Add the first one below.</p>'}
+      </div>`;
+  } catch(e) { b.textContent = 'Error loading project.'; }
+}
+
+async function addProjUpdate() {
+  if (!_curProjId) return;
+  const note = document.getElementById('pdNote').value.trim();
+  if (!note) { alrt('Add a note first', 'w', 'prjAl'); return; }
+  const prog = parseFloat(document.getElementById('pdProg').value) || null;
+  try {
+    const r = await af('/projects/' + _curProjId + '/updates', { method:'POST', body:{note, progress:prog, image_url:_pdImgB64||null}});
+    const d = await r.json();
+    if (d.id) { closeM('projDetailMod'); alrt('Update added!', 's', 'prjAl'); loadProjs(); }
+    else alrt(d.detail||'Error', 'e', 'prjAl');
+  } catch(e) { alrt('Error', 'e', 'prjAl'); }
+}
+
+function openNewProj() {
+  _pjImgB64 = null;
+  ['pjNm','pjBu','pjDs','pjTg'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('pjImgPrv').innerHTML = '';
+  // populate client dropdown
+  const cl = document.getElementById('pjCl');
+  cl.innerHTML = '<option value="">— Optional —</option>' + _cl.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  const d = new Date(); d.setDate(d.getDate()+30);
+  document.getElementById('pjDl').value = d.toISOString().split('T')[0];
+  if (_u) document.getElementById('pjCu').value = _u.currency||'NGN';
+  openM('projMod');
+}
+
+async function saveProj() {
+  const nm = document.getElementById('pjNm').value.trim();
+  if (!nm) { alrt('Project name required', 'w', 'prjAl'); return; }
+  try {
+    const r = await af('/projects', { method:'POST', body:{
+      name:nm, client_id:document.getElementById('pjCl').value||null,
+      status:document.getElementById('pjSt').value,
+      budget:parseFloat(document.getElementById('pjBu').value)||0,
+      currency:document.getElementById('pjCu').value,
+      deadline:document.getElementById('pjDl').value||null,
+      description:document.getElementById('pjDs').value||null,
+      tags:document.getElementById('pjTg').value||null,
+      cover_image:_pjImgB64||null
+    }});
+    const d = await r.json();
+    if (d.id) { closeM('projMod'); alrt('Project created!', 's', 'prjAl'); loadProjs(); }
+    else alrt(d.detail||'Error', 'e', 'prjAl');
+  } catch(e) { alrt('Error: '+e.message, 'e', 'prjAl'); }
+}
+
+// ── PAYMENTS STATUS CHECK ─────────────────────────────────────────────────────
+async function loadPm() {
+  // Check which services are configured via health endpoint
+  try {
+    const r = await af('/health');
+    const d = await r.json();
+    // Check Paystack
+    const psEl = document.getElementById('psS');
+    const waEl = document.getElementById('waS');
+    const rsEl = document.getElementById('rsS');
+
+    // Try to ping payment init to see if Paystack key works
+    const pr = await af('/pay/init', { method:'POST', body:{ invoice_token:'_test_', email:'test@test.com', amount:100, currency:'NGN'}});
+    const pd = await pr.json();
+    if (pd.authorization_url || pd.reference) {
+      psEl.textContent = '✅ Connected'; psEl.className = 'pm-st pm-on';
+    } else if (pd.detail && pd.detail.includes('key')) {
+      psEl.textContent = '⚠️ Key invalid'; psEl.className = 'pm-st pm-off';
+    } else {
+      psEl.textContent = '🔑 Key needed'; psEl.className = 'pm-st pm-off';
+    }
+  } catch(e) {
+    document.getElementById('psS').textContent = 'Add key in Render';
+    document.getElementById('psS').className = 'pm-st pm-off';
+  }
+  document.getElementById('waS').textContent = 'Set env vars';
+  document.getElementById('rsS').textContent = 'Set RESEND_API_KEY';
+}
+
+async function testPaystack() {
+  alrt('Testing Paystack connection...', 'i', 'pmAl');
+  try {
+    const r = await af('/pay/init', {method:'POST', body:{invoice_token:'_healthcheck_', email:'check@propelpay.com', amount:50, currency:'NGN'}});
+    const d = await r.json();
+    if (d.authorization_url) { alrt('✅ Paystack connected and working!', 's', 'pmAl'); document.getElementById('psS').textContent='✅ Connected'; document.getElementById('psS').className='pm-st pm-on'; }
+    else alrt('⚠️ Check PAYSTACK_SECRET_KEY in Render env', 'w', 'pmAl');
+  } catch(e) { alrt('Error: '+e.message, 'e', 'pmAl'); }
+}
+
+async function testEmail() {
+  alrt('Sending test email...', 'i', 'pmAl');
+  try {
+    const r = await af('/invoices/_test_email_', {method:'POST'}).catch(()=>null);
+    // Use the remind endpoint on a real invoice if exists
+    alrt('To test: Send an invoice and click the 📧 remind button.', 'i', 'pmAl');
+    document.getElementById('rsS').textContent = '🔑 Add RESEND_API_KEY';
+  } catch(e) { alrt('Add RESEND_API_KEY in Render environment variables', 'w', 'pmAl'); }
+}
+
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
@@ -171,6 +357,7 @@ tr:hover td{background:rgba(124,58,237,.035)}
     <div class="sb-item" onclick="go('recurring')"><span class="sb-ico">🔄</span>Recurring</div>
     <div class="sb-item" onclick="go('clients')"><span class="sb-ico">👥</span>Clients</div>
     <div class="sb-sec">System</div>
+    <div class="sb-item" onclick="go('projects')"><span class="sb-ico">🗂️</span>Projects</div>
     <div class="sb-item" onclick="go('payments')"><span class="sb-ico">💳</span>Payments</div>
     <div class="sb-item" onclick="go('settings')"><span class="sb-ico">⚙️</span>Settings</div>
   </div>
@@ -256,14 +443,72 @@ tr:hover td{background:rgba(124,58,237,.035)}
   </div>
 </div>
 
+<!-- PROJECTS -->
+<div class="page" id="page-projects">
+  <div id="prjAl"></div>
+  <div class="tc"><div class="tc-h">
+    <h3>Projects</h3>
+    <div style="display:flex;gap:7px;align-items:center">
+      <select id="prjFilt" onchange="loadProjs()" style="background:var(--card2);border:1px solid var(--bdr2);border-radius:6px;padding:5px 9px;color:var(--tx);font-size:10px;outline:none">
+        <option value="">All</option><option value="planning">Planning</option><option value="active">Active</option><option value="review">Review</option><option value="completed">Completed</option><option value="paused">Paused</option>
+      </select>
+      <button class="btn btn-p btn-sm" onclick="openNewProj()">+ New Project</button>
+    </div>
+  </div>
+  <div id="prjGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;padding:14px">
+    <div class="sk" style="height:120px;border-radius:11px"></div>
+    <div class="sk" style="height:120px;border-radius:11px"></div>
+  </div>
+  </div>
+</div>
+
+<!-- PROJECT DETAIL -->
+<div class="overlay" id="projDetailMod">
+  <div class="modal modal-lg" style="max-width:620px">
+    <h2 id="pdTitle">Project Details</h2>
+    <div id="pdBody" style="min-height:120px"></div>
+    <div class="tc-h" style="margin-top:16px;padding:0"><h3 style="font-size:11px">Add Update / Progress</h3></div>
+    <div class="fg" style="margin-top:10px"><label>Update Note</label><textarea id="pdNote" rows="2" placeholder="What was done? e.g. Completed homepage design..."></textarea></div>
+    <div class="fg"><label>Progress % (0-100)</label><input type="number" id="pdProg" min="0" max="100" placeholder="e.g. 65"></div>
+    <div class="fg"><label>Attach Image (optional)</label><input type="file" id="pdImg" accept="image/*" onchange="prvImg(this)" style="color:var(--tx)"></div>
+    <div id="pdImgPrv" style="margin-top:6px"></div>
+    <div class="fac" style="margin-top:10px">
+      <button class="btn btn-g" onclick="closeM('projDetailMod')">Close</button>
+      <button class="btn btn-p" onclick="addProjUpdate()">Add Update</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW PROJECT MODAL -->
+<div class="overlay" id="projMod">
+  <div class="modal">
+    <h2>🗂️ New Project</h2>
+    <div class="fg"><label>Project Name *</label><input id="pjNm" placeholder="Brand Identity for Tunde"></div>
+    <div class="fg"><label>Client</label><select id="pjCl"><option value="">— Optional —</option></select></div>
+    <div class="fr">
+      <div class="fg"><label>Status</label><select id="pjSt"><option value="planning">Planning</option><option value="active" selected>Active</option><option value="review">Review</option></select></div>
+      <div class="fg"><label>Budget</label><input type="number" id="pjBu" placeholder="350000"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Currency</label><select id="pjCu"><option value="NGN">NGN</option><option value="USD">USD</option><option value="GBP">GBP</option></select></div>
+      <div class="fg"><label>Deadline</label><input type="date" id="pjDl"></div>
+    </div>
+    <div class="fg"><label>Description</label><textarea id="pjDs" rows="2" placeholder="What are you building?"></textarea></div>
+    <div class="fg"><label>Tags (comma-separated)</label><input id="pjTg" placeholder="design, website, branding"></div>
+    <div class="fg"><label>Cover Image</label><input type="file" id="pjImg" accept="image/*" onchange="prvImg2(this)" style="color:var(--tx)"></div>
+    <div id="pjImgPrv" style="margin-top:6px"></div>
+    <div class="fac"><button class="btn btn-g" onclick="closeM('projMod')">Cancel</button><button class="btn btn-p" onclick="saveProj()">Create Project</button></div>
+  </div>
+</div>
+
 <!-- PAYMENTS -->
 <div class="page" id="page-payments">
   <div id="pmAl"></div>
-  <div style="margin-bottom:18px"><h2 style="font-size:15px;font-weight:800;color:var(--w);letter-spacing:-.3px;margin-bottom:3px">Payment Methods</h2><p style="font-size:11px;color:var(--mu)">Configure how clients pay. All methods work directly on your invoice link.</p></div>
-  <div class="pm-grid">
-    <div class="pm"><div class="pm-ico">💳</div><div class="pm-name">Paystack</div><div class="pm-desc">Card, Bank Transfer, USSD, Mobile Money</div><div id="psS" class="pm-st pm-off">Configure</div></div>
-    <div class="pm"><div class="pm-ico">💬</div><div class="pm-name">WhatsApp Business</div><div class="pm-desc">AI payment reminders via WhatsApp</div><div id="waS" class="pm-st pm-off">Configure</div></div>
-    <div class="pm"><div class="pm-ico">💌</div><div class="pm-name">Email (Resend)</div><div class="pm-desc">Transactional email — 3,000/month free</div><div id="rsS" class="pm-st pm-off">Configure</div></div>
+  <div style="margin-bottom:18px"><h2 style="font-size:15px;font-weight:800;color:var(--w);letter-spacing:-.3px;margin-bottom:3px">Payment & Integration Status</h2><p style="font-size:11px;color:var(--mu)">Live status of your connected services. Green = active. Add missing keys in Render dashboard.</p></div>
+  <div class="pm-grid" id="pmCards">
+    <div class="pm"><div class="pm-ico">💳</div><div class="pm-name">Paystack</div><div class="pm-desc">Card, Bank Transfer, USSD, Mobile Money</div><div id="psS" class="pm-st pm-off">⏳ Checking...</div><button class="btn btn-xs btn-p" style="margin-top:8px" onclick="testPaystack()">Test Connection</button></div>
+    <div class="pm"><div class="pm-ico">💬</div><div class="pm-name">WhatsApp Business</div><div class="pm-desc">AI-written payment reminders via WA</div><div id="waS" class="pm-st pm-off">⏳ Checking...</div><button class="btn btn-xs btn-wa" style="margin-top:8px" onclick="window.open('https://business.facebook.com/wa/manage/phone-numbers/','_blank')">Setup →</button></div>
+    <div class="pm"><div class="pm-ico">💌</div><div class="pm-name">Email (Resend)</div><div class="pm-desc">Transactional email — 3,000/month free</div><div id="rsS" class="pm-st pm-off">⏳ Checking...</div><button class="btn btn-xs btn-p" style="margin-top:8px" onclick="testEmail()">Send Test</button></div>
   </div>
   <div class="tc" style="padding:18px">
     <h3 style="font-size:12px;font-weight:700;color:var(--w);margin-bottom:5px">Render Environment Variables</h3>
@@ -490,14 +735,14 @@ function go(p){
   document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('on'));
   document.getElementById('page-'+p)?.classList.add('on');
   document.querySelectorAll('.sb-item').forEach(x=>{if(x.getAttribute('onclick')?.includes("'"+p+"'"))x.classList.add('on');});
-  const T={overview:'Overview',proposals:'Proposals',invoices:'Invoices',recurring:'Recurring',clients:'Clients',payments:'Payments',settings:'Settings'};
-  const B={overview:'+ New Invoice',proposals:'+ New Proposal',invoices:'+ New Invoice',recurring:'+ New Recurring',clients:'+ Add Client',payments:'',settings:''};
+  const T={overview:'Overview',proposals:'Proposals',invoices:'Invoices',recurring:'Recurring',clients:'Clients',projects:'Projects',payments:'Payments',settings:'Settings'};
+  const B={overview:'+ New Invoice',proposals:'+ New Proposal',invoices:'+ New Invoice',recurring:'+ New Recurring',clients:'+ Add Client',projects:'+ New Project',payments:'',settings:''};
   document.getElementById('pgTitle').textContent=T[p]||p;
   const btn=document.getElementById('topBtn');if(B[p]){btn.textContent=B[p];btn.style.display='';}else btn.style.display='none';
-  if(p==='overview')loadOv();if(p==='proposals')loadPrs();if(p==='invoices')loadInvs();if(p==='recurring')loadRec();if(p==='clients')loadCls();if(p==='payments')loadPm();if(p==='settings')loadSet();
+  if(p==='overview')loadOv();if(p==='proposals')loadPrs();if(p==='invoices')loadInvs();if(p==='recurring')loadRec();if(p==='clients')loadCls();if(p==='projects')loadProjs();if(p==='payments')loadPm();if(p==='settings')loadSet();
 }
 
-function topAct(){const p=document.querySelector('.page.on')?.id?.replace('page-','');if(p==='proposals')openNewProp();else if(p==='clients')openNewClient();else if(p==='recurring')openNewRec();else openNewInv();}
+function topAct(){const p=document.querySelector('.page.on')?.id?.replace('page-','');if(p==='proposals')openNewProp();else if(p==='clients')openNewClient();else if(p==='recurring')openNewRec();else if(p==='projects')openNewProj();else openNewInv();}
 
 async function loadOv(){
   try{const r=await af('/dashboard/stats');if(!r.ok)return;const d=await r.json();
