@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     SMTP_FROM_NAME: str = "PropelPay"
     SMTP_FROM_EMAIL: str = ""
 
+    # Admin — protects manual trigger endpoints (e.g. force an overdue sweep)
+    ADMIN_SECRET: str = ""
+
     # WhatsApp Business API (Meta Cloud API)
     WHATSAPP_PHONE_ID: str = ""          # Phone Number ID from Meta dashboard
     WHATSAPP_ACCESS_TOKEN: str = ""      # Permanent system user token

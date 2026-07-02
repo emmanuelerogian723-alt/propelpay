@@ -35,6 +35,10 @@ class Invoice(Base, TimestampMixin):
     terms: Mapped[str] = mapped_column(Text, nullable=True)
     auto_reminders: Mapped[bool] = mapped_column(Boolean, default=True)
     reminder_count: Mapped[int] = mapped_column(Integer, default=0)
+    reminder_stage: Mapped[int] = mapped_column(Integer, default=0)  # 0=none,1=day1,2=day3,3=day7,4=day14,5=day30
+    late_fee_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    late_fee_percent: Mapped[float] = mapped_column(Float, default=0.0)
+    late_fee_applied: Mapped[bool] = mapped_column(Boolean, default=False)
 
     user: Mapped["User"] = relationship(back_populates="invoices")
     client: Mapped["Client"] = relationship(back_populates="invoices")

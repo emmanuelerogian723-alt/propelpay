@@ -43,6 +43,8 @@ class InvoiceReq(BaseModel):
     notes: Optional[str] = None
     terms: Optional[str] = None
     auto_reminders: bool = True
+    late_fee_enabled: bool = False
+    late_fee_percent: float = 0
 
 
 def _invoice_dict(inv: Invoice, items: list = None, client: Client = None) -> dict:
@@ -59,6 +61,9 @@ def _invoice_dict(inv: Invoice, items: list = None, client: Client = None) -> di
         "paystack_payment_link": inv.paystack_payment_link,
         "notes": inv.notes, "terms": inv.terms,
         "auto_reminders": inv.auto_reminders, "reminder_count": inv.reminder_count,
+        "reminder_stage": inv.reminder_stage,
+        "late_fee_enabled": inv.late_fee_enabled, "late_fee_percent": inv.late_fee_percent,
+        "late_fee_applied": inv.late_fee_applied,
         "created_at": str(inv.created_at),
         "items": [{"id": i.id, "description": i.description, "quantity": i.quantity,
                    "unit_price": i.unit_price, "total": i.total} for i in (items or [])]
@@ -123,7 +128,9 @@ async def create_invoice(
         subtotal=subtotal, tax_rate=body.tax_rate, tax_amount=tax_amount,
         discount=body.discount, total=total, currency=body.currency,
         due_date=due, notes=body.notes, terms=body.terms,
-        auto_reminders=body.auto_reminders, public_token=token, status="draft"
+        auto_reminders=body.auto_reminders, public_token=token, status="draft",
+        late_fee_enabled=body.late_fee_enabled,
+        late_fee_percent=body.late_fee_percent if body.late_fee_enabled else 0,
     )
     db.add(inv)
     await db.flush()
@@ -166,7 +173,8 @@ async def update_invoice(
         select(Invoice).where(Invoice.id == invoice_id, Invoice.user_id == user.id))
     inv = result.scalar_one_or_none()
     if not inv: raise HTTPException(404, "Invoice not found")
-    allowed = ["title", "notes", "terms", "due_date", "currency", "tax_rate", "discount", "auto_reminders"]
+    allowed = ["title", "notes", "terms", "due_date", "currency", "tax_rate", "discount",
+               "auto_reminders", "late_fee_enabled", "late_fee_percent"]
     for k, v in data.items():
         if k in allowed: setattr(inv, k, v)
     await db.commit()
@@ -187,18 +195,19 @@ async def send_invoice(
     client = await _get_client(db, inv.client_id)
     if not client: raise HTTPException(400, "Please attach a client to this invoice before sending")
 
-    items = await _get_items(db, inv.id)
-    items_data = [{"description": i.description, "quantity": i.quantity,
-                   "unit_price": i.unit_price, "total": i.total} for i in items]
-
     # Generate Paystack payment link
+    # NOTE: create_payment_link() already converts naira -> kobo internally
+    # (it does amount*100). Passing an already-multiplied value here used to
+    # cause a DOUBLE conversion — a real ₦10,000 invoice was generating a
+    # Paystack checkout for ₦100,000,000 (100x, then x100 again = 10,000x).
+    # Fixed: pass the raw invoice total, let create_payment_link() do the
+    # kobo conversion exactly once.
     pay_url = f"{settings.FRONTEND_URL}/pay/{inv.public_token}"
     if settings.PAYSTACK_SECRET_KEY:
         try:
             cb = f"{settings.BACKEND_URL}/invoices/payment/verify/{inv.public_token}"
-            amount_kobo = int(inv.total * 100) if inv.currency == "NGN" else int(inv.total * 100)
             link_result = await create_payment_link(
-                email=client.email, amount=amount_kobo,
+                email=client.email, amount=inv.total,
                 invoice_id=inv.id, invoice_number=inv.invoice_number,
                 callback_url=cb, currency=inv.currency,
                 user_name=user.business_name or user.name
@@ -212,16 +221,21 @@ async def send_invoice(
     inv.status = "sent"
     await db.commit()
 
-    amount_str = f"{inv.currency} {inv.total:,.2f}"
+    # NOTE: this used to call send_invoice_email() with kwargs that didn't
+    # match its real signature (sender_name/invoice_number/amount/items/pay_url
+    # instead of user_name/inv_number/total/pay_link) — that raised a TypeError
+    # *synchronously* (argument binding happens before create_task can wrap it),
+    # crashing this entire endpoint with a 500 on every single "Send Invoice"
+    # click, even though the DB had already committed status="sent" just above.
     asyncio.create_task(send_invoice_email(
         to=client.email,
         client_name=client.name,
-        sender_name=user.business_name or user.name,
-        invoice_number=inv.invoice_number,
-        amount=amount_str,
+        inv_number=inv.invoice_number,
+        total=inv.total,
+        currency=inv.currency,
         due_date=inv.due_date or "N/A",
-        items=items_data,
-        pay_url=pay_url,
+        pay_link=pay_url,
+        user_name=user.business_name or user.name,
         user_id=user.id,
         invoice_id=inv.id
     ))
