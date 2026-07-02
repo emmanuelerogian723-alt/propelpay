@@ -1,6 +1,6 @@
-"""Project Tracker API — with image upload support"""
-import base64, uuid, os
-from datetime import datetime
+"""Project Tracker API — with image upload support + invoice conversion (v3.4 bugfix)"""
+import base64, uuid, os, secrets
+from datetime import datetime, date, timedelta
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,12 +10,13 @@ from app.database import get_db
 from app.models.user import User
 from app.models.project import Project, ProjectUpdate
 from app.models.client import Client
+from app.models.invoice import Invoice, InvoiceItem
 from app.services.auth import get_current_user
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
 
-def _pdict(p: Project, client_name: str = None) -> dict:
+def _pdict(p: Project, client_name: Optional[str] = None) -> dict:
     return {
         "id": p.id, "name": p.name, "description": p.description,
         "status": p.status, "budget": p.budget, "currency": p.currency,
@@ -64,7 +65,10 @@ async def list_projects(
     if cids:
         cr = await db.execute(select(Client).where(Client.id.in_(cids)))
         for c in cr.scalars().all(): clients[c.id] = c
-    return [_pdict(p, clients.get(p.client_id, {}) and clients.get(p.client_id).name) for p in projects]
+    # BUGFIX: previously returned {} instead of None when a project had no
+    # client, which JS rendered as the literal string "[object Object]" in
+    # the Projects grid instead of falling back to "No client".
+    return [_pdict(p, clients[p.client_id].name if p.client_id in clients else None) for p in projects]
 
 
 @router.post("")
@@ -158,6 +162,58 @@ async def add_update(
         p.updated_at = datetime.utcnow()
     await db.commit(); await db.refresh(u)
     return {"id": u.id, "note": u.note, "image_url": u.image_url, "progress": u.progress, "created_at": str(u.created_at)}
+
+
+@router.post("/{project_id}/convert-to-invoice")
+async def convert_to_invoice(
+    project_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """NEW: actually implements the 'link projects to invoices' promise shown
+    in the empty-state copy, which previously had no working feature behind it."""
+    res = await db.execute(select(Project).where(Project.id == project_id, Project.user_id == user.id))
+    p = res.scalar_one_or_none()
+    if not p: raise HTTPException(404, "Project not found")
+    if p.invoice_id:
+        raise HTTPException(400, "This project already has a linked invoice")
+    if not p.client_id:
+        raise HTTPException(400, "Add a client to this project first — invoices need a client to bill")
+
+    client = None
+    cr = await db.execute(select(Client).where(Client.id == p.client_id))
+    client = cr.scalar_one_or_none()
+    if not client:
+        raise HTTPException(400, "Linked client not found")
+
+    count_result = await db.execute(select(Project).where(Project.user_id == user.id))
+    from sqlalchemy import func
+    cnt_res = await db.execute(select(func.count(Invoice.id)).where(Invoice.user_id == user.id))
+    count = cnt_res.scalar() or 0
+    inv_number = f"INV-{date.today().strftime('%Y%m')}-{(count+1):04d}"
+    token = secrets.token_urlsafe(32)
+    price = p.budget or 0
+    due = (date.today() + timedelta(days=14)).strftime("%Y-%m-%d")
+
+    inv = Invoice(
+        user_id=user.id, client_id=p.client_id, invoice_number=inv_number,
+        title=p.name, subtotal=price, tax_rate=0, tax_amount=0, discount=0,
+        total=price, currency=p.currency, due_date=due,
+        notes=f"Invoice for project: {p.name}", auto_reminders=True,
+        public_token=token, status="draft"
+    )
+    db.add(inv)
+    await db.flush()
+    item = InvoiceItem(
+        invoice_id=inv.id, description=p.description or p.name,
+        quantity=1, unit_price=price, total=price
+    )
+    db.add(item)
+    p.invoice_id = inv.id
+    p.updated_at = datetime.utcnow()
+    await db.commit()
+    await db.refresh(inv)
+    return {"success": True, "invoice_id": inv.id, "invoice_number": inv.invoice_number}
 
 
 @router.delete("/{project_id}")

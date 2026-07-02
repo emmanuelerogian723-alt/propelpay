@@ -22,6 +22,7 @@ httpx==0.28.1
 
 # AI
 groq==0.13.0
+openai==1.57.0  # used for OpenRouter fallback when GROQ_API_KEY is unavailable
 
 # PDF Generation
 reportlab==4.2.5

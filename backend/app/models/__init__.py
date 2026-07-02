@@ -10,9 +10,10 @@ from app.models.recurring_invoice import RecurringInvoice
 from app.models.email_log import EmailLog
 from app.models.bank_account import BankAccount
 from app.models.project import Project, ProjectUpdate
+from app.models.chat_lead import ChatLead
 
 __all__ = [
     "User","Client","Proposal","Invoice","InvoiceItem","Payment",
     "FollowUp","Signature","Subscription","RecurringInvoice",
-    "EmailLog","BankAccount","Project","ProjectUpdate"
+    "EmailLog","BankAccount","Project","ProjectUpdate","ChatLead"
 ]

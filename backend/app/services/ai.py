@@ -19,12 +19,18 @@ def _get_client():
         except Exception as e:
             logger.error(f"Groq init failed: {e}")
     if settings.OPENROUTER_API_KEY:
-        from openai import OpenAI
-        return OpenAI(base_url="https://openrouter.ai/api/v1",
-                      api_key=settings.OPENROUTER_API_KEY), "meta-llama/llama-3.3-70b-instruct", "openrouter"
+        try:
+            from openai import OpenAI
+            return OpenAI(base_url="https://openrouter.ai/api/v1",
+                          api_key=settings.OPENROUTER_API_KEY), "meta-llama/llama-3.3-70b-instruct", "openrouter"
+        except Exception as e:
+            logger.error(f"OpenRouter init failed: {e}")
     if settings.OPENAI_API_KEY:
-        from openai import OpenAI
-        return OpenAI(api_key=settings.OPENAI_API_KEY), "gpt-4o-mini", "openai"
+        try:
+            from openai import OpenAI
+            return OpenAI(api_key=settings.OPENAI_API_KEY), "gpt-4o-mini", "openai"
+        except Exception as e:
+            logger.error(f"OpenAI init failed: {e}")
     return None, None, None
 
 
